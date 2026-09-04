@@ -1,0 +1,5 @@
+extends: smoke.yaml
+document:
+  ocr: {backend: paddleocr}
+vision:
+  tracker: {type: bytetrack}

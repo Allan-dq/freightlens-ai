@@ -1,0 +1,28 @@
+seed: 42
+mode: full
+paths:
+  data: data/full
+  models: models/full
+  artifacts: artifacts/full
+document:
+  synthetic: {train_size: 1200, val_size: 200, test_size: 300}
+  ocr: {backend: paddleocr}
+  layoutlm:
+    enabled: true
+    model_name: microsoft/layoutlmv3-base
+    epochs: 5
+    batch_size: 2
+    patience: 2
+    freeze_backbone: true
+vision:
+  palleset: {train_size: 200, val_size: 60, test_size: 60, max_download_mb: 1800}
+  detector: {model: yolo11n.pt, image_size: 640, epochs: 30, batch_size: 4, patience: 5}
+  tracker: {type: bytetrack, confidence_threshold: 0.25, direction: 1}
+  video: {count: 20, seconds: 10, fps: 12, width: 960, height: 540}
+reconciliation:
+  method: rules
+  scenarios: 2000
+  document_threshold: 0.7
+  vision_threshold: 0.6
+  fragmentation_threshold: 0.4
+api: {max_upload_mb: 20, max_video_seconds: 30, max_video_pixels: 2073600}

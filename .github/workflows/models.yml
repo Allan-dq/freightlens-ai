@@ -1,0 +1,22 @@
+name: Optional pretrained model integration
+on:
+  workflow_dispatch:
+jobs:
+  models:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.11'
+          enable-cache: true
+      - run: uv sync --locked --extra dev --extra vision --extra layout --extra ocr
+      - run: uv run --no-sync python scripts/model_smoke.py
+        env:
+          PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: 'True'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: measured-model-results
+          path: artifacts/

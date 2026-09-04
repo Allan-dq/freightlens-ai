@@ -1,0 +1,18 @@
+services:
+  api:
+    build:
+      context: .
+      args:
+        MODEL_EXTRAS: "--extra ocr --extra vision"
+    ports: ["127.0.0.1:8000:8000"]
+    environment:
+      FREIGHTLENS_CONFIG: configs/base.yaml
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./artifacts:/app/artifacts
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

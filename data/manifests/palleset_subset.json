@@ -1,0 +1,82 @@
+{
+  "download_bytes": 11778390,
+  "files": [
+    {
+      "bytes": 304,
+      "path": "train/bboxes_2d/bounding_box_2d_tight_1606.npy",
+      "sha256": "84f5832410af7a6a3afbf4e97ed5452b321aa057f9651cf1311083c4ea41dd6e"
+    },
+    {
+      "bytes": 904,
+      "path": "train/bboxes_2d/bounding_box_2d_tight_2003.npy",
+      "sha256": "730d5d5c529fd085fea69bf8d73a74b404fea306a0a0efbfb37b8b691a5217ac"
+    },
+    {
+      "bytes": 2959365,
+      "path": "train/rgb/rgb_1606.png",
+      "sha256": "33f3461927d1f103b87bff00238f6b111a017362998b2bf3f89af192ce109a6f"
+    },
+    {
+      "bytes": 2778683,
+      "path": "train/rgb/rgb_2003.png",
+      "sha256": "a1df17848754fbc39b0949968263983ecfa8760aa9aee7fe990540539a47ef37"
+    },
+    {
+      "bytes": 1360,
+      "path": "val/bboxes_2d/bounding_box_2d_tight_2529.npy",
+      "sha256": "dada47331491d54e537807b7f5b96ed787f69d6c1f1ddb39557512ef428bae21"
+    },
+    {
+      "bytes": 664,
+      "path": "val/bboxes_2d/bounding_box_2d_tight_2575.npy",
+      "sha256": "5878d694e73afeffc4fb6fca2f109bfe4f3a97503806ae1ebf604ffa12606d5e"
+    },
+    {
+      "bytes": 2718317,
+      "path": "val/rgb/rgb_2529.png",
+      "sha256": "8bc3e0ce044a234b4edb81bf80cccfe2fbab43d34f55f5299d9342fe42046383"
+    },
+    {
+      "bytes": 3318793,
+      "path": "val/rgb/rgb_2575.png",
+      "sha256": "c9816804031e93959c9713dbb43ee7c531ea18e29578fd6aa96b3df9dfefdd20"
+    }
+  ],
+  "license": "CC-BY-4.0",
+  "pairs": {
+    "train_001606": {
+      "bboxes_2d": "train/bboxes_2d/bounding_box_2d_tight_1606.npy",
+      "rgb": "train/rgb/rgb_1606.png"
+    },
+    "train_002003": {
+      "bboxes_2d": "train/bboxes_2d/bounding_box_2d_tight_2003.npy",
+      "rgb": "train/rgb/rgb_2003.png"
+    },
+    "val_002529": {
+      "bboxes_2d": "val/bboxes_2d/bounding_box_2d_tight_2529.npy",
+      "rgb": "val/rgb/rgb_2529.png"
+    },
+    "val_002575": {
+      "bboxes_2d": "val/bboxes_2d/bounding_box_2d_tight_2575.npy",
+      "rgb": "val/rgb/rgb_2575.png"
+    }
+  },
+  "repo_id": "eusandre95/Palleset",
+  "requested": {
+    "test": 1,
+    "train": 2,
+    "val": 1
+  },
+  "revision": "110ae3a3921b34165a1fac77a3870645c32f1a77",
+  "seed": 42,
+  "test_ids": [
+    "val_002529"
+  ],
+  "train_ids": [
+    "train_002003",
+    "train_001606"
+  ],
+  "val_ids": [
+    "val_002575"
+  ]
+}

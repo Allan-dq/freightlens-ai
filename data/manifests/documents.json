@@ -1,0 +1,210 @@
+{
+  "samples": [
+    {
+      "path": "data/synthetic/documents/train/DOC_000001.json",
+      "sha256": "fdc8af6cc355cef78382f38516ca997330696d1d8065543564903cb5e43b2cbd"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000002.json",
+      "sha256": "4326d495748e6f78fb8d166da4e8598a3f8c7be084209af846f5f82a1c198c43"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000003.json",
+      "sha256": "6c4366e72e122fe4ae38ecc50460c15db21b7a106b5f50d071b3265424eb9276"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000004.json",
+      "sha256": "4b4fcce521100a8efbee39f69451c766829c60fa2637d91b51c16bf7b480d7cb"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000005.json",
+      "sha256": "efe3a5b86d0d3e7a9da50a49d0b10dd5d147e4a64c8cad98c21f782202a6055e"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000006.json",
+      "sha256": "54e35406116a3a6826a4fb4a27ab9974b65f8c4f258762dfab803f68b758d27b"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000007.json",
+      "sha256": "b89dcc66c2ff11ab0875a5d256f3114ea9fc5f4a73e771feee875c6f21e71a44"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000008.json",
+      "sha256": "2ed5a234ab3755b22ee91ceda6f7df3f3d4d442efd4fbfa3c07c8d0003cf1518"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000009.json",
+      "sha256": "5c2d7121901ee710af5f24a232b891512179bbbc1af75cf46db650128147e4cb"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000010.json",
+      "sha256": "ea4491494ce91686d8a18d34bf736893b57ea540767aa9b55ed64b356b315f7f"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000011.json",
+      "sha256": "4b7429b9d46570af4dac34c138544e170674e80333378b06c7a70c758e2a1100"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000012.json",
+      "sha256": "1ba03e28468e2823802477c03f104996690944fa98dc739392664a9681497786"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000013.json",
+      "sha256": "4c9f6b85f1c99239c458033957a83b74555f2693a55fd815bc704068e12b5043"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000014.json",
+      "sha256": "6aaff3c8479f5de94d9077199c118f483f494558b3db6a2b29317ff10397e9aa"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000015.json",
+      "sha256": "4eb0db0e01d7d1266f90e008033dade5427750c16c01b9ec6fcbeaa1ec3ebef1"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000016.json",
+      "sha256": "da1eef72debabadca382137b755b13a9bf99a8f33f791ec0f654ecd92e9991e1"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000017.json",
+      "sha256": "4344cf8c7337f1fb5283c53f48139326886e224226b1fedcd555fbf0ac70c4ce"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000018.json",
+      "sha256": "2446616a1c1d24460dfb558224d3afc29dc4db0398a5a6e6e3f1a21a8b4a034a"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000019.json",
+      "sha256": "00863a169d4008ee6407c285ca98759a09da5923f8cf740b0b2bcb025f2c5d34"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000020.json",
+      "sha256": "78f482d8d7fbe9023e42bd3d1957510e15d237eade9ee77281d5aabf399f775d"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000021.json",
+      "sha256": "302013779de07f7039c2ab339a53891e24b5aab962d9426f89b52bea9c8a2ee2"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000022.json",
+      "sha256": "bdc00cc365fd328e67508caddb1b9a11ee9d486e2a7cfca06762fe3017743e16"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000023.json",
+      "sha256": "90741b08d1d3be79f7c8c09544acb2ba120231b5379f2829c990816769458eb5"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000024.json",
+      "sha256": "b05159ef9f9d826541ee4c7c74b3aa3879bc8d0363443acd401fd3fc5b01cb8c"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000025.json",
+      "sha256": "60ec622e4b69716d1a3f74cfb1f6c1d09e59dbb353ec9bcede3f8f3346f3bc44"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000026.json",
+      "sha256": "57ec1557f1273b25aee758fe26d50ea8dee8ccdf72824ebcee393f52e1ec94bf"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000027.json",
+      "sha256": "1e9ce6f73f40cc77eb855734f0724d98d44fc7c427682a73691777c74ad7d378"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000028.json",
+      "sha256": "c956fc1ed54b0fca3abfb0f70e23b56d219ce7487ea40ac2a690bfc64085ad01"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000029.json",
+      "sha256": "6298080d8cbb6a42fc00037b6e4d578adc120a0ba978a8abc6e0129592edfffa"
+    },
+    {
+      "path": "data/synthetic/documents/train/DOC_000030.json",
+      "sha256": "a075d6898840880d6b58041a8a3959e19b42631ba51479fb5b98b60cb37218b3"
+    },
+    {
+      "path": "data/synthetic/documents/val/DOC_000031.json",
+      "sha256": "21155add4458f10a065b343ecbd8cdf8e1a10ebad21d04061d512b5e2115b1db"
+    },
+    {
+      "path": "data/synthetic/documents/val/DOC_000032.json",
+      "sha256": "f2847f13b5f77e7fca6535d06f5e4d6688cca376cc6d62b96122a2fd64d466b8"
+    },
+    {
+      "path": "data/synthetic/documents/val/DOC_000033.json",
+      "sha256": "83425a47342736ce530d113e942ca63bf4cf941da2996415c97d69a5f1428ddc"
+    },
+    {
+      "path": "data/synthetic/documents/val/DOC_000034.json",
+      "sha256": "af4c1cf4c75b8c734addf92d6c98722291cefb4c38dcc96aab838ab15fdea255"
+    },
+    {
+      "path": "data/synthetic/documents/val/DOC_000035.json",
+      "sha256": "e07e67e1b047e3a60b4fb675f78650b9a8ef8d5bac5e31bce170e437115e9220"
+    },
+    {
+      "path": "data/synthetic/documents/val/DOC_000036.json",
+      "sha256": "8d2730b630aa458bd85fdc9376347db505592a3f8b8b08ca5affe96e197d80d1"
+    },
+    {
+      "path": "data/synthetic/documents/val/DOC_000037.json",
+      "sha256": "f09a69833ecdc9ac9ff98eaab04615950da675f5ee54c14e308f9b01ea1fd0d9"
+    },
+    {
+      "path": "data/synthetic/documents/val/DOC_000038.json",
+      "sha256": "14f99e4ea1a6667d4750beadae509bdd8b0ea801bfbe072a3f6b71cd6ed600f0"
+    },
+    {
+      "path": "data/synthetic/documents/val/DOC_000039.json",
+      "sha256": "30fb693b175dfab05f1f8988b256f202996e21a0437cd7ae4ce8c4fcb0081e20"
+    },
+    {
+      "path": "data/synthetic/documents/val/DOC_000040.json",
+      "sha256": "f8c0b957723bdf1248f1f242a1c9c30e1b1e7255132f01c29aaeb8ee940b647c"
+    },
+    {
+      "path": "data/synthetic/documents/test/DOC_000041.json",
+      "sha256": "2a6e2d19a86466e11f19244f8a727de60d402072d5bea6a5c89aad302e92e603"
+    },
+    {
+      "path": "data/synthetic/documents/test/DOC_000042.json",
+      "sha256": "ee6eab9f40df3c83781cba86538191add3445145293996cf6aa0dc97d45d5fec"
+    },
+    {
+      "path": "data/synthetic/documents/test/DOC_000043.json",
+      "sha256": "3e5e4b03aaebeeb0f6948e2678bec967cfa74d038dcd5a92c1af64479173be0f"
+    },
+    {
+      "path": "data/synthetic/documents/test/DOC_000044.json",
+      "sha256": "83ea3c30a1386ddcebd64f515d32ca314d71f27e224de15984e5362e11dd6a9b"
+    },
+    {
+      "path": "data/synthetic/documents/test/DOC_000045.json",
+      "sha256": "24af8e1c94e90373fc75593cd52b10ebc3e7bad349f290012ac0064ee028e494"
+    },
+    {
+      "path": "data/synthetic/documents/test/DOC_000046.json",
+      "sha256": "7ba5960210538982bd24f97e4fdf9fe1ea6de61ca7146b24a6f879a380006d48"
+    },
+    {
+      "path": "data/synthetic/documents/test/DOC_000047.json",
+      "sha256": "f8854a40f8875b31870bfbafd0e85bfe00ac6c7de6be2fbd0d00be721f66eb33"
+    },
+    {
+      "path": "data/synthetic/documents/test/DOC_000048.json",
+      "sha256": "35661198a232db57e27707b7242b8e0e13c8129f2bbd35064b19fc48e6e22b8c"
+    },
+    {
+      "path": "data/synthetic/documents/test/DOC_000049.json",
+      "sha256": "1429f9031fd866a1c87554368e69e91a11d4aecd5cdcb96d1018447ac68aa9fe"
+    },
+    {
+      "path": "data/synthetic/documents/test/DOC_000050.json",
+      "sha256": "5b796ccc100484ef5eca9c1e5e937c8891a0a8e74ba03e41b990eb43a803af43"
+    }
+  ],
+  "seed": 42,
+  "sizes": {
+    "test_size": 10,
+    "train_size": 30,
+    "val_size": 10
+  }
+}

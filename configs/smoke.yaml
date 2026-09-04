@@ -1,0 +1,13 @@
+extends: base.yaml
+mode: smoke
+paths: {data: data, models: models, artifacts: artifacts}
+document:
+  synthetic: {train_size: 30, val_size: 10, test_size: 10}
+  ocr: {backend: fixture}
+  layoutlm: {enabled: false, epochs: 1}
+vision:
+  palleset: {train_size: 2, val_size: 1, test_size: 1}
+  detector: {epochs: 1, image_size: 320, batch_size: 2}
+  tracker: {type: fixture}
+  video: {count: 2, seconds: 4, fps: 8, width: 640, height: 480}
+reconciliation: {scenarios: 30}

@@ -1,0 +1,7 @@
+extends: smoke.yaml
+paths: {data: data/demo, models: models/demo, artifacts: artifacts/demo-run}
+document:
+  synthetic: {train_size: 60, val_size: 20, test_size: 20}
+vision:
+  video: {count: 7, seconds: 5, fps: 8, width: 640, height: 480}
+reconciliation: {scenarios: 100}
