@@ -2,7 +2,7 @@
 
 ## Intended use
 
-A reproducible research and portfolio demonstration of expected-versus-observed freight
+A reproducible research demonstration of expected-versus-observed freight
 verification. It is not validated for production warehouse decisions, security surveillance,
 inventory accounting or unattended exception resolution.
 

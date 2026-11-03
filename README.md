@@ -18,12 +18,12 @@ The offline demo generates a freight document expecting three pallets and a cont
 with two line crossings. It extracts the fields, counts decoded video objects and writes a
 `MISSING_PALLET` report. Offline OCR is an explicitly labeled fixture; it is not model OCR.
 
-After running, inspect:
+After running, inspect the generated outputs (not committed to the repository):
 
-- [Annotated freight form](artifacts/demo/document_annotated.png)
-- [Annotated tracking video](artifacts/demo/tracking_demo.mp4)
-- [Shipment verification JSON](artifacts/demo/report.json)
-- [Generated metric summary](artifacts/metrics/summary.json)
+- `artifacts/demo/document_annotated.png`: annotated freight form
+- `artifacts/demo/tracking_demo.mp4`: annotated tracking video
+- `artifacts/demo/report.json`: shipment verification report
+- `artifacts/metrics/summary.json`: metric summary
 
 `make demo` runs a larger offline demonstration with seven video scenarios and 100 reconciliation
 cases. Its outputs are isolated under `artifacts/demo-run/`. Open the local FastAPI interactive
