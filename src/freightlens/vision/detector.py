@@ -3,7 +3,16 @@ from pathlib import Path
 
 from freightlens.config import Config
 from freightlens.data.seeds import set_global_seed
+from freightlens.devices import resolve_device
 from freightlens.io import write_json
+
+
+def dataset_yaml(config: Config) -> Path:
+    name = config.vision.detector.dataset
+    path = config.paths.data / f"processed/{name}/dataset.yaml"
+    if not path.exists():
+        raise ValueError(f"Prepare the {name} dataset before training or evaluation")
+    return path
 
 
 def load_detector(model: str):
@@ -38,7 +47,7 @@ def detect(path: Path, config: Config) -> list[dict]:
     results = model.predict(
         str(path),
         classes=[class_id],
-        device="cpu",
+        device=resolve_device(config.vision.detector.device),
         verbose=False,
         imgsz=config.vision.detector.image_size,
         conf=config.vision.tracker.confidence_threshold,
@@ -55,9 +64,7 @@ def detect(path: Path, config: Config) -> list[dict]:
 
 
 def train_detector(config: Config) -> dict:
-    dataset = config.paths.data / "processed/palleset/dataset.yaml"
-    if not dataset.exists():
-        raise ValueError("Download and prepare Palleset before training")
+    dataset = dataset_yaml(config)
     model = load_detector(config.vision.detector.model)
     set_global_seed(config.seed)
     settings = config.vision.detector
@@ -67,8 +74,8 @@ def train_detector(config: Config) -> dict:
         epochs=settings.epochs,
         batch=settings.batch_size,
         patience=settings.patience,
-        device="cpu",
-        workers=0,
+        device=resolve_device(settings.device),
+        workers=settings.workers,
         seed=config.seed,
         deterministic=True,
         project=str((config.paths.models / "vision").resolve()),
@@ -81,6 +88,8 @@ def train_detector(config: Config) -> dict:
     metrics = {
         "status": "trained",
         "source": settings.model,
+        "dataset": settings.dataset,
+        "device": resolve_device(settings.device),
         "epochs_requested": settings.epochs,
         "metrics": result.results_dict,
     }
