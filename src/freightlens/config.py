@@ -40,18 +40,40 @@ class LayoutConfig(StrictModel):
     freeze_backbone: bool = True
 
 
+class FunsdLayoutConfig(StrictModel):
+    model_name: str = "microsoft/layoutlmv3-base"
+    max_steps: int = Field(1000, gt=0)
+    learning_rate: float = Field(1e-5, gt=0)
+    batch_size: int = Field(2, gt=0)
+    eval_every: int = Field(100, gt=0)
+    val_forms: int = Field(15, ge=1)
+    device: str = "cpu"
+
+
 class DocumentConfig(StrictModel):
     synthetic: Sizes = Field(default_factory=Sizes)
     ocr: OCRConfig = Field(default_factory=OCRConfig)
     layoutlm: LayoutConfig = Field(default_factory=LayoutConfig)
+    funsd: FunsdLayoutConfig = Field(default_factory=FunsdLayoutConfig)
+
+
+class LocoConfig(StrictModel):
+    """LOCO (real logistics scenes, CC0). Subsets are separate recording sessions."""
+
+    train_subsets: list[int] = Field(default_factory=lambda: [2, 3])
+    val_subsets: list[int] = Field(default_factory=lambda: [5])
+    test_subsets: list[int] = Field(default_factory=lambda: [1, 4])
 
 
 class DetectorConfig(StrictModel):
     model: str = "yolo11n.pt"
+    dataset: Literal["palleset", "loco"] = "palleset"
     image_size: int = Field(640, ge=32)
     epochs: int = Field(30, gt=0)
     batch_size: int = Field(4, gt=0)
     patience: int = Field(5, gt=0)
+    device: str = "cpu"
+    workers: int = Field(0, ge=0)
 
 
 class TrackerConfig(StrictModel):
@@ -70,6 +92,7 @@ class VideoConfig(StrictModel):
 
 class VisionConfig(StrictModel):
     palleset: PallesetConfig = Field(default_factory=PallesetConfig)
+    loco: LocoConfig = Field(default_factory=LocoConfig)
     detector: DetectorConfig = Field(default_factory=DetectorConfig)
     tracker: TrackerConfig = Field(default_factory=TrackerConfig)
     video: VideoConfig = Field(default_factory=VideoConfig)

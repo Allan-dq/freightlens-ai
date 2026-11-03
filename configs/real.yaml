@@ -1,0 +1,15 @@
+# Real-data training: LOCO warehouse imagery for detection, FUNSD scanned forms for
+# LayoutLMv3. Uses the local accelerator when available (CUDA, then Apple MPS).
+extends: base.yaml
+document:
+  funsd: {device: auto, max_steps: 1000, learning_rate: 1.0e-5, batch_size: 2, eval_every: 100}
+vision:
+  detector:
+    dataset: loco
+    model: yolo11n.pt
+    image_size: 640
+    epochs: 50
+    batch_size: 16
+    patience: 10
+    device: auto
+    workers: 4
