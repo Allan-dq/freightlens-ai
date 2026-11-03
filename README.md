@@ -88,13 +88,22 @@ checks. Full training is a separate command; smoke numbers are not full-training
 | Component | Evaluation | Metric | Value |
 |---|---|---|---|
 | document_baseline | fixture_parser_only | f1 | 0.9007 |
-| document_layoutlm | not_run | f1 | not run |
-| pallet_detection | public_synthetic_palleset_test | mAP50 | 0.0002 |
+| document_paddleocr | raster_ocr_and_parser | f1 | 0.7259 |
 | tracking | fixture_pixel_tracking | crossing_f1 | 1.0000 |
 | reconciliation | controlled_state_interventions | f1 | 0.9697 |
-| document_paddleocr | raster_ocr_and_parser | f1 | 0.7259 |
-| document_layoutlm_model_probe | ground_truth_tokens_layout_entity_f1 | f1 | 0.0000 |
 <!-- RESULTS_END -->
+
+### Integration smoke checks
+
+These runs only verify that the pretrained model paths load, train for one step/epoch and write
+metrics end to end. They are deliberately undertrained and are not accuracy results; full-training
+results (`make document`, `make vision`) are not reported here.
+
+| Component | Smoke run | Metric | Value |
+|---|---|---|---|
+| pallet_detection | 1-epoch YOLO fine-tune, public_synthetic_palleset_test | mAP50 | 0.0002 |
+| document_layoutlm_model_probe | 1 optimizer step, ground_truth_tokens_layout_entity_f1 | f1 | 0.0000 |
+| document_layoutlm | full training | f1 | not run |
 
 Real PaddleOCR evaluation lives in `artifacts/model-probe/metrics/document_baseline.json` and is
 also copied to `artifacts/metrics/document_paddleocr.json` by the model smoke command. Model
