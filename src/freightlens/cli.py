@@ -18,6 +18,8 @@ COMMANDS = {
     "prepare-documents": ("document_ai.layoutlm", "prepare_documents"),
     "prepare-palleset": ("vision.palleset", "prepare_palleset"),
     "train-detector": ("vision.detector", "train_detector"),
+    "prepare-loco": ("vision.loco", "prepare_loco"),
+    "train-funsd-layoutlm": ("document_ai.funsd_layoutlm", "train_funsd_layoutlm"),
     "evaluate-detector": ("vision.metrics", "evaluate_detector"),
     "generate-tracking-videos": ("vision.video_generator", "generate_videos"),
     "run-tracking": ("vision.tracking_metrics", "run_tracking"),
@@ -109,11 +111,13 @@ def main() -> None:
             "download-palleset": "download-palleset",
             "download-funsd": "download-funsd",
             "prepare-palleset": "prepare-palleset",
+            "prepare-loco": "prepare-loco",
         },
         "document": {
             "analyze": "analyze-document",
             "evaluate": "evaluate-documents",
             "train": "train-layoutlm",
+            "train-funsd": "train-funsd-layoutlm",
         },
         "vision": {
             "detect": "detect",
