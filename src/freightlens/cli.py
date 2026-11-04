@@ -21,6 +21,7 @@ COMMANDS = {
     "prepare-loco": ("vision.loco", "prepare_loco"),
     "train-funsd-layoutlm": ("document_ai.funsd_layoutlm", "train_funsd_layoutlm"),
     "evaluate-detector": ("vision.metrics", "evaluate_detector"),
+    "calibrate-count": ("vision.calibration", "calibrate_count_threshold"),
     "generate-tracking-videos": ("vision.video_generator", "generate_videos"),
     "run-tracking": ("vision.tracking_metrics", "run_tracking"),
     "generate-scenarios": ("reconciliation.scenarios", "generate_scenarios"),
@@ -125,6 +126,7 @@ def main() -> None:
             "track": "track",
             "evaluate": "evaluate-detector",
             "train": "train-detector",
+            "calibrate": "calibrate-count",
         },
     }
     for group, commands in mapping.items():
