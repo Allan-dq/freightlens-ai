@@ -96,38 +96,56 @@ def test_real_results_table_renders_measured_values_only(tmp_path):
     from freightlens.io import write_json
     from freightlens.real_results import END, START, results_table, update_readme
 
-    config = load_config("configs/real.yaml")
-    config.paths.artifacts = tmp_path / "artifacts"
-    config.paths.data = tmp_path / "data"
-    write_json(
-        config.paths.data / "manifests/loco.json",
-        {"splits": {"train": {"images": 1943}, "test": {"images": 2277}}},
-    )
-    write_json(
-        config.paths.artifacts / "metrics/pallet_detection.json",
-        {
-            "dataset": "loco",
-            "pallet_AP50": 0.5,
-            "pallet_AP50_95": 0.25,
-            "mAP50": 0.4,
-            "pallet_count_mae": 3.0,
-        },
-    )
-    table = results_table(config)
-    assert "| pallet count error per image (MAE) | 3.0 |" in table
-    write_json(
-        config.paths.artifacts / "metrics/pallet_count_calibration.json",
-        {"threshold": 0.25, "test_mae": 7.21, "test_bias": -0.91},
-    )
-    table = results_table(config)
-    assert "threshold 0.25 chosen on validation (MAE / bias) | 7.2 / -0.9 |" in table
-    assert "| pallet AP50 | 0.500 |" in table
-    assert "1,943 real warehouse images" in table
-    assert table.count("not run") == 2
+    def fake(name: str, train: list[int], images: int, ap: float, calibrated: bool):
+        config = load_config("configs/real.yaml")
+        config.paths.artifacts = tmp_path / name / "artifacts"
+        config.paths.data = tmp_path / name / "data"
+        write_json(
+            config.paths.data / "manifests/loco.json",
+            {
+                "splits": {
+                    "train": {"images": images, "subsets": train},
+                    "test": {"images": 2277, "subsets": [1, 4]},
+                }
+            },
+        )
+        write_json(
+            config.paths.artifacts / "metrics/pallet_detection.json",
+            {
+                "dataset": "loco",
+                "pallet_AP50": ap,
+                "pallet_AP50_95": 0.25,
+                "mAP50": 0.4,
+                "pallet_count_mae": 3.0,
+            },
+        )
+        if calibrated:
+            write_json(
+                config.paths.artifacts / "metrics/pallet_count_calibration.json",
+                {"threshold": 0.25, "test_mae": 7.21, "test_bias": -0.91},
+            )
+        return config
+
+    development = fake("dev", [2, 3], 1943, 0.5, calibrated=False)
+    table = results_table(development)
+    assert "| Development | sessions 2 and 3, 1,943 images;" in table
+    assert "| 0.500 | 0.250 | 0.400 | 3.0 / – |" in table
+    assert "sessions 1 and 4 (2,277 images)" in table
+    assert table.count("not run") == 2  # FUNSD rows without metrics
+
+    final = fake("final", [2, 3, 5], 2820, 0.55, calibrated=True)
+    final.vision.detector.epochs = 37
+    table = results_table(development, final)
+    first, second = [
+        r for r in table.splitlines() if r.startswith(("| **Final**", "| Development"))
+    ]
+    assert first.startswith("| **Final** | sessions 2, 3 and 5, 2,820 images; 37 epochs")
+    assert "| 0.550 |" in first and first.endswith("| 7.2 / -0.9 |")
+    assert second.startswith("| Development")
 
     readme = tmp_path / "README.md"
     readme.write_text(f"intro\n{START}\nSTALE_ROW\n{END}\nfooter\n", encoding="utf-8")
-    update_readme(config, readme)
+    update_readme(development, readme, final_config=None)
     text = readme.read_text(encoding="utf-8")
     assert "STALE_ROW" not in text and text.endswith("footer\n") and "0.500" in text
 
