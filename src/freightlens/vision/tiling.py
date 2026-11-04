@@ -192,6 +192,8 @@ def evaluate_split(
     targets, pallet_truth = [], []
     for path in images:
         image = cv2.imread(str(path))
+        if image is None:
+            raise ValueError(f"Cannot read image: {path}")
         height, width = image.shape[:2]
         true_boxes, true_cls = read_labels(
             root / "labels" / split / f"{path.stem}.txt", width, height
