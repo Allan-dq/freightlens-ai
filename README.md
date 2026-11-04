@@ -24,16 +24,19 @@ Both models are fine-tuned on real, public datasets and scored once on held-out 
 The table is generated from the saved metric files by `freightlens report-real`.
 
 <!-- REAL_RESULTS_START -->
-| Model | Trained on | Evaluated on | Metric | Value |
-|---|---|---|---|---|
-| YOLO11n detector | LOCO, 1,943 real warehouse images | LOCO, 2,277 images from unseen recording sessions | pallet AP50 | 0.522 |
-| | | | pallet AP50-95 | 0.206 |
-| | | | mAP50, all 5 classes | 0.271 |
-| | | | pallet count error per image, threshold 0.25 chosen on validation (MAE / bias) | 7.2 / -0.9 |
-| LayoutLMv3-base, word boxes (OCR setting) | FUNSD, 134 scanned forms | FUNSD official test, 50 forms | entity F1 | 0.797 |
-| LayoutLMv3-base, segment boxes | FUNSD, 134 scanned forms | FUNSD official test, 50 forms | entity F1 | 0.878 |
+| YOLO11n, 640 px | Trained on (LOCO) | Pallet AP50 | Pallet AP50-95 | mAP50, 5 classes | Pallet count MAE / bias |
+|---|---|---|---|---|---|
+| **Final** | sessions 2, 3 and 5, 2,820 images; 37 epochs, last checkpoint | 0.551 | 0.227 | 0.303 | 6.7 / -0.7 |
+| Development | sessions 2 and 3, 1,943 images; epoch selected on session 5 | 0.522 | 0.206 | 0.271 | 7.2 / -0.9 |
 
-Median single-image latency on Apple M1 Pro:
+Both detectors are scored on LOCO sessions 1 and 4 (2,277 images), which were never used for training or model selection. Pallet counts use confidence 0.25, selected on validation data.
+
+| LayoutLMv3-base | Trained on | Evaluated on | Entity F1 |
+|---|---|---|---|
+| word boxes (OCR setting) | FUNSD, 134 scanned forms | FUNSD official test, 50 forms | 0.797 |
+| segment boxes | FUNSD, 134 scanned forms | FUNSD official test, 50 forms | 0.878 |
+
+Median single-image latency on Apple M1 Pro (measured with the development checkpoint; the final model has the same architecture and input size):
 
 | Model | CPU | MPS |
 |---|---|---|
@@ -43,7 +46,9 @@ Median single-image latency on Apple M1 Pro:
 
 - **LOCO** ([tum-fml/loco](https://github.com/tum-fml/loco), CC0) contains photos taken while
   walking through real logistics facilities. Train, validation and test come from different
-  recording sessions, so near-duplicate frames never leak across splits.
+  recording sessions, so near-duplicate frames never leak across splits. The development model
+  held out session 5 to pick the epoch count; the final model then trains on sessions 2, 3 and 5
+  for that many epochs. The rule to ship the final model was fixed before its test score was seen.
 - **FUNSD** is the standard benchmark for understanding noisy scanned forms. *Word boxes* give each
   word its own box, as an OCR engine would on a new document. *Segment boxes* give every word its
   annotated entity box, the setting used for the published LayoutLMv3 FUNSD score (90.3 F1); that
@@ -54,15 +59,18 @@ Median single-image latency on Apple M1 Pro:
 
 ### Error analysis
 
+- **More sites help more than more pixels.** Adding a third recording session raised test pallet
+  AP50 from 0.522 to 0.551 and recall from 0.30 to 0.34, while tiled inference at about twice the
+  resolution added only 0.012. Facility-to-facility variation is the main limit.
 - **Distant pallets are missed, but resolution is only part of it.** Test images hold 23 pallets
-  on average (median 16), many only a few pixels tall at 640 px. Tiled inference at about twice
-  the resolution lifts pallet AP50 from 0.410 to 0.467 on the validation session but only from
-  0.519 to 0.531 on the test sessions, so the headroom depends on the facility
-  ([details](REPORT.md#10-real-data-training-loco-and-funsd)).
+  on average (median 16), many only a few pixels tall at 640 px. For the development model, tiled
+  inference at about twice the resolution lifts pallet AP50 from 0.410 to 0.467 on the validation
+  session but only from 0.519 to 0.531 on the test sessions, so the headroom depends on the
+  facility ([details](REPORT.md#10-real-data-training-loco-and-funsd)).
 - **Count errors go both ways.** The counting threshold was chosen on the validation session by
-  minimizing per-image count error; the sweep landed on 0.25. At that point the test count is off
-  by 7.2 pallets per image but the mean bias is only −0.9: missed pallets and false positives
-  roughly cancel. Lower thresholds overcount sharply, higher ones
+  minimizing per-image count error; the sweep landed on 0.25. At that point the final model's test
+  count is off by 6.7 pallets per image but the mean bias is only −0.7: missed pallets and false
+  positives roughly cancel. Lower thresholds overcount sharply, higher ones
   undercount ([curve](docs/images/count_threshold.png)). A threshold chosen on one site does not
   transfer reliably to another, so counting would need per-site calibration.
 - **Rare classes are unstable.** Forklifts and pallet trucks have a few hundred training boxes
@@ -115,7 +123,11 @@ uv sync --extra dev --extra layout --extra vision
 
 # Detector: download LOCO (769 MB archive + COCO annotations) into data/full/raw/loco, then
 uv run --no-sync freightlens data prepare-loco --config configs/real.yaml
-uv run --no-sync freightlens vision train --config configs/real.yaml
+uv run --no-sync freightlens vision train --config configs/real.yaml        # development model
+uv run --no-sync freightlens vision calibrate --config configs/real.yaml    # counting threshold
+uv run --no-sync freightlens data prepare-loco --config configs/real_final.yaml
+uv run --no-sync freightlens vision train --config configs/real_final.yaml  # final model
+uv run --no-sync python scripts/evaluate_onnx.py --config configs/real_final.yaml
 
 # Form model
 uv run --no-sync freightlens data download-funsd --config configs/real.yaml
@@ -150,8 +162,8 @@ The [live demo](https://huggingface.co/spaces/AllanDai/freightlens-ai) is a stat
   against both implementations (pytest, and Node in CI).
 - **Warehouse detection.** The LOCO detector runs client-side with ONNX Runtime Web, so uploaded
   photos never leave the browser. The JavaScript pre- and post-processing matches the Python ONNX
-  pipeline box for box on the example images, and the exported model scores 0.521 pallet AP50 on
-  the LOCO test sessions (0.522 for the PyTorch checkpoint).
+  pipeline box for box on the example images, and the exported final model scores 0.552 pallet
+  AP50 on the LOCO test sessions (0.551 for the PyTorch checkpoint).
 - **Form understanding.** Precomputed LayoutLMv3 outputs on FUNSD test forms.
 
 `scripts/export_web_demo.py` rebuilds every asset from the trained models.
@@ -211,7 +223,7 @@ data/manifests/     dataset revisions, splits and checksums
 - Tracking and reconciliation are evaluated on controlled videos and generated shipments, not on
   paired real operations.
 - The review policy was tuned on generated data. Its 0.60 mean-confidence threshold sends every
-  real-photo count to a person (the LOCO detector averages about 0.4), which is safe but not yet
+  real-photo count to a person (the LOCO detector averages about 0.4 to 0.5), which is safe but not yet
   useful; calibrating the policy needs real documents paired with real camera footage.
 
 ## License

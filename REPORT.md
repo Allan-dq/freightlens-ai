@@ -188,3 +188,19 @@ on the test sessions (+0.012, with no change in AP50-95), so the gain depends on
 pallets are in a given facility. The counting threshold chosen on validation (0.37 for tiles)
 undercounts badly on test: a single counting threshold does not transfer across sites, so
 counting would need per-site calibration. The deployed model stays at full-frame 640 px.
+
+**Final model: more sessions instead of more pixels.** The tiling result pointed to
+facility-to-facility variation as the larger limit, so the final detector adds session 5 to
+training. With no session left for model selection, it trains for the 37 epochs selected on
+session 5 by the development run and keeps the last checkpoint (`configs/real_final.yaml`).
+The decision to ship this model was made before its test score was computed.
+
+| Detector | Training sessions | Test pallet AP50 | Test pallet AP50-95 | Test mAP50 | Test recall | Count MAE / bias |
+|---|---|---|---|---|---|---|
+| Development | 2, 3 (1,943 images) | 0.522 | 0.206 | 0.271 | 0.298 | 7.2 / -0.9 |
+| Final | 2, 3, 5 (2,820 images) | 0.551 | 0.227 | 0.303 | 0.342 | 6.7 / -0.7 |
+
+A third session adds 0.028 pallet AP50, more than doubling the effective resolution did (0.012).
+AP, recall and counting all improve; precision drops slightly (0.47 to 0.44) as recall rises, and
+forklift and stillage AP fall (session 5 contains a single stillage). The ONNX export used by the
+browser demo scores 0.552 pallet AP50.

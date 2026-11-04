@@ -4,6 +4,26 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Final detector** trained on LOCO sessions 2, 3 and 5 for the 37 epochs chosen on validation
+  (`configs/real_final.yaml`, last checkpoint). Test pallet AP50 0.551 (development model 0.522),
+  mAP50 0.303, count MAE 6.7. Weights, model card and the browser demo now use it.
+- **Tiled inference experiment** (`scripts/evaluate_tiling.py`) with an evaluator that reproduces
+  the Ultralytics AP. About twice the resolution adds 0.057 pallet AP50 on validation but only
+  0.012 on test.
+- `scripts/evaluate_onnx.py` exports the detector and scores the export on the test split.
+- `make ci-local` runs lint, mypy and tests without the optional extras, as CI does.
+- The verify tab anchors each document to the photo's annotated pallet count and states whether
+  a flag is real or a false alarm.
+
+### Fixed
+
+- Tiling evaluation fails clearly on unreadable images (found by mypy in the dev-only CI
+  environment).
+
 ## [1.0.0] - 2026-11-04
 
 First release with models trained and evaluated on real, public data.
