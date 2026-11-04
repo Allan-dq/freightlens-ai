@@ -22,6 +22,7 @@ artifacts/**
 !**/.gitkeep
 data/demo/
 data/full/
+data/full-final/
 *.pt
 *.safetensors
 *.egg-info/
