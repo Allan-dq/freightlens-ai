@@ -3,9 +3,13 @@
 [![CPU checks](https://github.com/Allan-dq/freightlens-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/Allan-dq/freightlens-ai/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 ![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+[![Live demo](https://img.shields.io/badge/Live%20demo-Hugging%20Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/spaces/AllanDai/freightlens-ai)
 
 **Freight document and warehouse-camera verification.** FreightLens reads what a shipment's
 paperwork says, counts what the camera actually sees, and reports the differences with evidence.
+
+**[Try the live demo →](https://huggingface.co/spaces/AllanDai/freightlens-ai)** The warehouse
+detector runs entirely in your browser; upload your own photo or use the test images.
 
 ![Pallet and equipment detections on an unseen LOCO warehouse session](docs/images/loco_detections.jpg)
 
@@ -119,11 +123,17 @@ uv run --no-sync freightlens report-real --config configs/real.yaml
 config, environment, seed and Git revision to `artifacts/full/runs/`. Dataset provenance and
 licenses are in [DATA_CARD.md](DATA_CARD.md); model details in [MODEL_CARD.md](MODEL_CARD.md).
 
-## Demo app
+## Demo
 
-`space/` contains a Gradio app with two tabs, warehouse object detection and form understanding,
-ready to deploy as a Hugging Face Space. Example inputs are taken from the LOCO and FUNSD test
-splits.
+The [live demo](https://huggingface.co/spaces/AllanDai/freightlens-ai) is a static page in
+`demo/web/`. It runs the LOCO detector client-side with ONNX Runtime Web, so uploaded photos never
+leave the browser, and shows precomputed LayoutLMv3 outputs on FUNSD test forms.
+`scripts/export_web_demo.py` rebuilds its assets. The JavaScript pre- and post-processing matches
+the Python ONNX pipeline box for box on the example images, and the exported model scores 0.521
+pallet AP50 on the LOCO test sessions (0.522 for the PyTorch checkpoint).
+
+`demo/gradio/` is a server-side version that runs both models live, including OCR on uploaded
+forms; it is meant for local runs.
 
 ## API
 
@@ -162,7 +172,8 @@ synthetic inputs, not real-world accuracy. See [REPORT.md](REPORT.md) for defini
 configs/            smoke, base, real-data and API profiles
 src/freightlens/    document_ai, vision, reconciliation, api, schemas, CLI
 scripts/            training, evaluation, benchmark and demo entry points
-space/              Gradio demo for Hugging Face Spaces
+demo/web/           static browser demo (live on Hugging Face)
+demo/gradio/        server-side Gradio demo for local runs
 tests/              unit and integration tests
 data/manifests/     dataset revisions, splits and checksums
 ```
