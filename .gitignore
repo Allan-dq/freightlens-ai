@@ -31,4 +31,5 @@ tmp/
 Ultralytics/
 runs/
 logs/
-space/models/
+demo/gradio/models/
+demo/web/model/

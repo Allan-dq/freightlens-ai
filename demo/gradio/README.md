@@ -4,7 +4,7 @@ emoji: 📦
 colorFrom: green
 colorTo: blue
 sdk: gradio
-sdk_version: 5.9.1
+sdk_version: 5.50.0
 python_version: "3.11"
 app_file: app.py
 pinned: false
@@ -24,3 +24,16 @@ real public data:
 
 Example images come from the LOCO and FUNSD test splits, which were not used for training.
 LayoutLMv3 weights are released under CC BY-NC-SA 4.0, so this demo is for non-commercial use.
+
+## Run locally
+
+This server-side version runs both models live, including OCR on uploaded forms. Copy the
+trained weights into `models/` (`loco_yolo11n.pt` and the `layoutlmv3-funsd/` checkpoint), install
+Tesseract, then:
+
+```bash
+pip install gradio==5.50.0 -r requirements.txt
+python app.py
+```
+
+The public demo uses the static version in `../web/`, which runs the detector in the browser.
