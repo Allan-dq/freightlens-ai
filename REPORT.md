@@ -168,3 +168,23 @@ image with a mean bias of −0.9, which shows that misses and false positives la
 other rather than the model systematically undercounting.
 
 ![Validation count error against confidence threshold](docs/images/count_threshold.png)
+
+**Does resolution limit the detector?** Before training at a higher input size, tiled inference
+measured the headroom without retraining: the 640 px model also runs on overlapping 960 px crops
+(scaled to 640, about 2x the effective resolution) plus the full frame, and the boxes are merged
+with class-wise NMS (`scripts/evaluate_tiling.py`). All modes share one evaluator that mirrors the
+Ultralytics matching and AP code; on the full-frame mode it reproduces the official pallet AP50
+(0.410 vs 0.412 on validation, 0.519 vs 0.522 on test). Modes and counting thresholds were chosen
+on the validation session, and the test sessions were scored once.
+
+| Mode | Val pallet AP50 | Test pallet AP50 | Test pallet AP50-95 | Test count MAE / bias |
+|---|---|---|---|---|
+| Full frame, 640 px | 0.410 | 0.519 | 0.200 | 7.2 / -0.9 |
+| 960 px tiles + full frame | 0.467 | 0.531 | 0.201 | 8.3 / -5.8 |
+| 640 px tiles + full frame | 0.440 | not run | | |
+
+Higher effective resolution helps a lot on the validation session (+0.057 AP50) but only a little
+on the test sessions (+0.012, with no change in AP50-95), so the gain depends on how far away the
+pallets are in a given facility. The counting threshold chosen on validation (0.37 for tiles)
+undercounts badly on test: a single counting threshold does not transfer across sites, so
+counting would need per-site calibration. The deployed model stays at full-frame 640 px.

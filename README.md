@@ -54,14 +54,17 @@ Median single-image latency on Apple M1 Pro:
 
 ### Error analysis
 
-- **Distant pallets are missed.** Test images hold 23 pallets on average (median 16), many only a
-  few pixels tall after resizing 1920×1080 frames to 640 px, so recall is the weak side. Training
-  at a higher input resolution is the next experiment.
+- **Distant pallets are missed, but resolution is only part of it.** Test images hold 23 pallets
+  on average (median 16), many only a few pixels tall at 640 px. Tiled inference at about twice
+  the resolution lifts pallet AP50 from 0.410 to 0.467 on the validation session but only from
+  0.519 to 0.531 on the test sessions, so the headroom depends on the facility
+  ([details](REPORT.md#10-real-data-training-loco-and-funsd)).
 - **Count errors go both ways.** The counting threshold was chosen on the validation session by
   minimizing per-image count error; the sweep landed on 0.25. At that point the test count is off
   by 7.2 pallets per image but the mean bias is only −0.9: missed pallets and false positives
   roughly cancel. Lower thresholds overcount sharply, higher ones
-  undercount ([curve](docs/images/count_threshold.png)).
+  undercount ([curve](docs/images/count_threshold.png)). A threshold chosen on one site does not
+  transfer reliably to another, so counting would need per-site calibration.
 - **Rare classes are unstable.** Forklifts and pallet trucks have a few hundred training boxes
   each, against 57,000 pallets, and their AP stays low.
 - **Large carton stacks look like small load carriers** at a distance, as in the image above.
