@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from PIL import Image
 from pydantic import BaseModel, Field
 
+from freightlens import __version__
 from freightlens.api.dependencies import get_config
 from freightlens.config import Config
 from freightlens.pipeline import analyze_document
@@ -57,7 +58,7 @@ def store_upload(upload: UploadFile, directory: Path, allowed: set[str], maximum
 
 @router.get("/health")
 def health():
-    return {"status": "ok", "service": "freightlens", "version": "0.1.0"}
+    return {"status": "ok", "service": "freightlens", "version": __version__}
 
 
 @router.post("/documents/analyze", response_model=DocumentResponse)
