@@ -11,3 +11,5 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --extra dev
       - run: make lint test smoke
+      - name: Browser demo reconciliation parity
+        run: node demo/web/tests/reconcile.test.js

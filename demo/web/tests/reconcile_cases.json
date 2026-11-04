@@ -1,0 +1,247 @@
+[
+  {
+    "name": "match",
+    "expected": {
+      "shipment_id": "SHP-1",
+      "expected_pallet_count": 6,
+      "expected_vehicle_id": "TR-1234",
+      "document_confidence": 0.95
+    },
+    "observed": {
+      "shipment_id": "SHP-1",
+      "observed_pallet_count": 6,
+      "observed_vehicle_id": "tr 1234",
+      "mean_detection_confidence": 0.8,
+      "tracking_fragmentation": null
+    },
+    "result": {
+      "status": "MATCH",
+      "anomaly_type": "NORMAL",
+      "pallet_delta": 0,
+      "vehicle_match": true,
+      "anomaly_score": 0.025,
+      "review_reasons": [],
+      "discrepancies": []
+    }
+  },
+  {
+    "name": "missing pallets",
+    "expected": {
+      "shipment_id": "SHP-1",
+      "expected_pallet_count": 6,
+      "expected_vehicle_id": "TR-1234",
+      "document_confidence": 0.95
+    },
+    "observed": {
+      "shipment_id": "SHP-1",
+      "observed_pallet_count": 4,
+      "observed_vehicle_id": null,
+      "mean_detection_confidence": 0.8,
+      "tracking_fragmentation": null
+    },
+    "result": {
+      "status": "ANOMALY",
+      "anomaly_type": "MISSING_PALLET",
+      "pallet_delta": -2,
+      "vehicle_match": null,
+      "anomaly_score": 0.175,
+      "review_reasons": [],
+      "discrepancies": [
+        "MISSING_PALLET"
+      ]
+    }
+  },
+  {
+    "name": "extra pallet",
+    "expected": {
+      "shipment_id": "SHP-1",
+      "expected_pallet_count": 3,
+      "expected_vehicle_id": null,
+      "document_confidence": 0.9
+    },
+    "observed": {
+      "shipment_id": "SHP-1",
+      "observed_pallet_count": 4,
+      "observed_vehicle_id": null,
+      "mean_detection_confidence": 0.75,
+      "tracking_fragmentation": null
+    },
+    "result": {
+      "status": "ANOMALY",
+      "anomaly_type": "EXTRA_PALLET",
+      "pallet_delta": 1,
+      "vehicle_match": null,
+      "anomaly_score": 0.185,
+      "review_reasons": [],
+      "discrepancies": [
+        "EXTRA_PALLET"
+      ]
+    }
+  },
+  {
+    "name": "low vision confidence",
+    "expected": {
+      "shipment_id": "SHP-1",
+      "expected_pallet_count": 6,
+      "expected_vehicle_id": "TR-1234",
+      "document_confidence": 0.95
+    },
+    "observed": {
+      "shipment_id": "SHP-1",
+      "observed_pallet_count": 6,
+      "observed_vehicle_id": null,
+      "mean_detection_confidence": 0.45,
+      "tracking_fragmentation": null
+    },
+    "result": {
+      "status": "REVIEW_REQUIRED",
+      "anomaly_type": "LOW_CONFIDENCE_VISION",
+      "pallet_delta": 0,
+      "vehicle_match": null,
+      "anomaly_score": 0.06,
+      "review_reasons": [
+        "LOW_CONFIDENCE_VISION"
+      ],
+      "discrepancies": []
+    }
+  },
+  {
+    "name": "low document confidence",
+    "expected": {
+      "shipment_id": "SHP-1",
+      "expected_pallet_count": 6,
+      "expected_vehicle_id": null,
+      "document_confidence": 0.5
+    },
+    "observed": {
+      "shipment_id": "SHP-1",
+      "observed_pallet_count": 5,
+      "observed_vehicle_id": null,
+      "mean_detection_confidence": 0.9,
+      "tracking_fragmentation": null
+    },
+    "result": {
+      "status": "REVIEW_REQUIRED",
+      "anomaly_type": "LOW_CONFIDENCE_DOCUMENT",
+      "pallet_delta": -1,
+      "vehicle_match": null,
+      "anomaly_score": 0.135,
+      "review_reasons": [
+        "LOW_CONFIDENCE_DOCUMENT"
+      ],
+      "discrepancies": [
+        "MISSING_PALLET"
+      ]
+    }
+  },
+  {
+    "name": "vehicle mismatch",
+    "expected": {
+      "shipment_id": "SHP-1",
+      "expected_pallet_count": 2,
+      "expected_vehicle_id": "TR-1111",
+      "document_confidence": 0.9
+    },
+    "observed": {
+      "shipment_id": "SHP-1",
+      "observed_pallet_count": 2,
+      "observed_vehicle_id": "TR-2222",
+      "mean_detection_confidence": 0.9,
+      "tracking_fragmentation": null
+    },
+    "result": {
+      "status": "ANOMALY",
+      "anomaly_type": "VEHICLE_MISMATCH",
+      "pallet_delta": 0,
+      "vehicle_match": false,
+      "anomaly_score": 0.32,
+      "review_reasons": [],
+      "discrepancies": [
+        "VEHICLE_MISMATCH"
+      ]
+    }
+  },
+  {
+    "name": "count and vehicle",
+    "expected": {
+      "shipment_id": "SHP-1",
+      "expected_pallet_count": 5,
+      "expected_vehicle_id": "TR-1111",
+      "document_confidence": 0.9
+    },
+    "observed": {
+      "shipment_id": "SHP-1",
+      "observed_pallet_count": 3,
+      "observed_vehicle_id": "TR-2222",
+      "mean_detection_confidence": 0.9,
+      "tracking_fragmentation": null
+    },
+    "result": {
+      "status": "ANOMALY",
+      "anomaly_type": "COUNT_MISMATCH",
+      "pallet_delta": -2,
+      "vehicle_match": false,
+      "anomaly_score": 0.5,
+      "review_reasons": [],
+      "discrepancies": [
+        "MISSING_PALLET",
+        "VEHICLE_MISMATCH"
+      ]
+    }
+  },
+  {
+    "name": "no observation",
+    "expected": {
+      "shipment_id": "SHP-1",
+      "expected_pallet_count": 5,
+      "expected_vehicle_id": null,
+      "document_confidence": 0.9
+    },
+    "observed": {
+      "shipment_id": "SHP-1",
+      "observed_pallet_count": null,
+      "observed_vehicle_id": null,
+      "mean_detection_confidence": null,
+      "tracking_fragmentation": null
+    },
+    "result": {
+      "status": "REVIEW_REQUIRED",
+      "anomaly_type": "LOW_CONFIDENCE_VISION",
+      "pallet_delta": null,
+      "vehicle_match": null,
+      "anomaly_score": 0.11,
+      "review_reasons": [
+        "LOW_CONFIDENCE_VISION",
+        "PARTIAL_OBSERVATION"
+      ],
+      "discrepancies": []
+    }
+  },
+  {
+    "name": "fragmented tracks",
+    "expected": {
+      "shipment_id": "SHP-1",
+      "expected_pallet_count": 5,
+      "expected_vehicle_id": null,
+      "document_confidence": 0.9
+    },
+    "observed": {
+      "shipment_id": "SHP-1",
+      "observed_pallet_count": 5,
+      "observed_vehicle_id": null,
+      "mean_detection_confidence": 0.9,
+      "tracking_fragmentation": 0.6
+    },
+    "result": {
+      "status": "REVIEW_REQUIRED",
+      "anomaly_type": "PARTIAL_OBSERVATION",
+      "pallet_delta": 0,
+      "vehicle_match": null,
+      "anomaly_score": 0.05,
+      "review_reasons": [
+        "PARTIAL_OBSERVATION"
+      ],
+      "discrepancies": []
+    }
+  }
+]
