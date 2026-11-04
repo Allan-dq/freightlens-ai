@@ -8,8 +8,9 @@
 **Freight document and warehouse-camera verification.** FreightLens reads what a shipment's
 paperwork says, counts what the camera actually sees, and reports the differences with evidence.
 
-**[Try the live demo →](https://huggingface.co/spaces/AllanDai/freightlens-ai)** The warehouse
-detector runs entirely in your browser; upload your own photo or use the test images.
+**[Try the live demo →](https://huggingface.co/spaces/AllanDai/freightlens-ai)** Pick a shipment,
+and the page counts pallets in a real warehouse photo inside your browser, compares the count with
+the shipping document and applies the same reconciliation rules as the Python service.
 
 ![Pallet and equipment detections on an unseen LOCO warehouse session](docs/images/loco_detections.jpg)
 
@@ -130,11 +131,19 @@ licenses are in [DATA_CARD.md](DATA_CARD.md); model details in [MODEL_CARD.md](M
 ## Demo
 
 The [live demo](https://huggingface.co/spaces/AllanDai/freightlens-ai) is a static page in
-`demo/web/`. It runs the LOCO detector client-side with ONNX Runtime Web, so uploaded photos never
-leave the browser, and shows precomputed LayoutLMv3 outputs on FUNSD test forms.
-`scripts/export_web_demo.py` rebuilds its assets. The JavaScript pre- and post-processing matches
-the Python ONNX pipeline box for box on the example images, and the exported model scores 0.521
-pallet AP50 on the LOCO test sessions (0.522 for the PyTorch checkpoint).
+`demo/web/` with three tabs:
+
+- **Verify a shipment.** Fields of a generated shipping document, read by the PaddleOCR + rule
+  parser pipeline (precomputed), are reconciled against a live pallet count on a real LOCO photo.
+  `reconcile.js` ports `reconciliation/rules.py`; shared cases in `demo/web/tests/` are checked
+  against both implementations (pytest, and Node in CI).
+- **Warehouse detection.** The LOCO detector runs client-side with ONNX Runtime Web, so uploaded
+  photos never leave the browser. The JavaScript pre- and post-processing matches the Python ONNX
+  pipeline box for box on the example images, and the exported model scores 0.521 pallet AP50 on
+  the LOCO test sessions (0.522 for the PyTorch checkpoint).
+- **Form understanding.** Precomputed LayoutLMv3 outputs on FUNSD test forms.
+
+`scripts/export_web_demo.py` rebuilds every asset from the trained models.
 
 `demo/gradio/` is a server-side version that runs both models live, including OCR on uploaded
 forms; it is meant for local runs.
@@ -190,6 +199,9 @@ data/manifests/     dataset revisions, splits and checksums
   layouts, so it is not yet validated on real bills of lading.
 - Tracking and reconciliation are evaluated on controlled videos and generated shipments, not on
   paired real operations.
+- The review policy was tuned on generated data. Its 0.60 mean-confidence threshold sends every
+  real-photo count to a person (the LOCO detector averages about 0.4), which is safe but not yet
+  useful; calibrating the policy needs real documents paired with real camera footage.
 
 ## License
 
