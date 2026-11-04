@@ -69,3 +69,24 @@ def test_real_config_selects_loco_and_auto_device():
     assert config.vision.detector.device == "auto"
     assert not set(config.vision.loco.train_subsets) & set(config.vision.loco.test_subsets)
     assert resolve_device("cpu") == "cpu"
+
+
+def test_funsd_segment_boxes_share_the_entity_box():
+    annotation = {
+        "form": [
+            {
+                "label": "question",
+                "box": [0, 0, 50, 10],
+                "words": [
+                    {"text": "Ship", "box": [0, 0, 20, 10]},
+                    {"text": "to", "box": [25, 0, 50, 10]},
+                ],
+            }
+        ]
+    }
+    word = form_to_sample(annotation, Path("f.png"), 100, 100, box_level="word")
+    segment = form_to_sample(annotation, Path("f.png"), 100, 100, box_level="segment")
+    assert word["boxes"] == [[0, 0, 200, 100], [250, 0, 500, 100]]
+    assert segment["boxes"] == [[0, 0, 500, 100], [0, 0, 500, 100]]
+    with pytest.raises(ValueError):
+        form_to_sample(annotation, Path("f.png"), 100, 100, box_level="line")

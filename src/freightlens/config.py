@@ -47,6 +47,7 @@ class FunsdLayoutConfig(StrictModel):
     batch_size: int = Field(2, gt=0)
     eval_every: int = Field(100, gt=0)
     val_forms: int = Field(15, ge=1)
+    box_level: Literal["word", "segment"] = "word"
     device: str = "cpu"
 
 

@@ -5,8 +5,15 @@ converted to BIO tags (other -> O) and boxes are normalised to the 0-1000 grid t
 LayoutLMv3 expects. The official 149/50 train/test split is kept; a fixed slice of
 the training forms is held out for checkpoint selection, so the test forms are only
 used once, for the final score.
+
+Two box conventions are supported. "word" gives every word its own box, which is
+what an OCR engine produces at inference time. "segment" gives every word the box
+of its annotated entity, the convention used for the published LayoutLMv3 FUNSD
+result; it is useful for comparing against the paper but relies on ground-truth
+entity extents that are not available on unseen documents.
 """
 
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -16,6 +23,8 @@ from freightlens.config import Config
 from freightlens.data.seeds import set_global_seed
 from freightlens.devices import resolve_device
 from freightlens.io import read_json, record_run, write_json
+
+LOGGER = logging.getLogger(__name__)
 
 FUNSD_LABELS = ["O", "B-HEADER", "I-HEADER", "B-QUESTION", "I-QUESTION", "B-ANSWER", "I-ANSWER"]
 
@@ -36,15 +45,20 @@ def _normalise(box: list[float], width: int, height: int) -> list[int]:
     return values
 
 
-def form_to_sample(annotation: dict, image_path: Path, width: int, height: int) -> dict:
+def form_to_sample(
+    annotation: dict, image_path: Path, width: int, height: int, box_level: str = "word"
+) -> dict:
     """Convert one FUNSD annotation into word-level LayoutLMv3 inputs with BIO tags."""
+    if box_level not in {"word", "segment"}:
+        raise ValueError(f"Unknown box level: {box_level}")
     words, boxes, labels = [], [], []
     for entity in annotation["form"]:
         kind = entity["label"].upper()
         entity_words = [w for w in entity["words"] if w["text"].strip()]
         for index, word in enumerate(entity_words):
             words.append(word["text"])
-            boxes.append(_normalise(word["box"], width, height))
+            source = entity["box"] if box_level == "segment" else word["box"]
+            boxes.append(_normalise(source, width, height))
             if kind == "OTHER":
                 labels.append(FUNSD_LABELS.index("O"))
             else:
@@ -59,7 +73,7 @@ def form_to_sample(annotation: dict, image_path: Path, width: int, height: int) 
     }
 
 
-def load_split(root: Path, split: str) -> list[dict]:
+def load_split(root: Path, split: str, box_level: str = "word") -> list[dict]:
     folder = root / ("training_data" if split == "train" else "testing_data")
     samples = []
     for path in sorted((folder / "annotations").glob("*.json")):
@@ -68,7 +82,9 @@ def load_split(root: Path, split: str) -> list[dict]:
         image_path = folder / "images" / f"{path.stem}.png"
         with Image.open(image_path) as image:
             width, height = image.size
-        samples.append(form_to_sample(read_json(path), image_path, width, height))
+        samples.append(
+            form_to_sample(read_json(path), image_path, width, height, box_level=box_level)
+        )
     if not samples:
         raise ValueError(f"No FUNSD {split} forms under {folder}")
     return samples
@@ -150,7 +166,8 @@ def train_funsd_layoutlm(config: Config) -> dict:
     device = resolve_device(settings.device)
     set_global_seed(config.seed)
     root = funsd_root(config)
-    train_all, test = load_split(root, "train"), load_split(root, "test")
+    level = settings.box_level
+    train_all, test = load_split(root, "train", level), load_split(root, "test", level)
     order = np.random.default_rng(config.seed).permutation(len(train_all))
     val = [train_all[i] for i in order[: settings.val_forms]]
     train = [train_all[i] for i in order[settings.val_forms :]]
@@ -167,7 +184,8 @@ def train_funsd_layoutlm(config: Config) -> dict:
     optimizer = torch.optim.AdamW(model.parameters(), lr=settings.learning_rate, weight_decay=0.01)
     max_steps = 2 if config.mode == "smoke" else settings.max_steps
     scheduler = schedule(optimizer, int(0.1 * max_steps), max_steps)
-    destination = config.paths.models / "document/layoutlmv3-funsd"
+    suffix = "" if level == "word" else f"-{level}"
+    destination = config.paths.models / f"document/layoutlmv3-funsd{suffix}"
     rng = np.random.default_rng(config.seed)
     best, history, step = -1.0, [], 0
     while step < max_steps:
@@ -187,7 +205,14 @@ def train_funsd_layoutlm(config: Config) -> dict:
             step += 1
             if step % settings.eval_every == 0 or step == max_steps:
                 validation = evaluate(model, processor, val, settings.batch_size, device)
-                history.append({"step": step, "train_loss": float(loss), **validation})
+                history.append({"step": step, "train_loss": loss.item(), **validation})
+                LOGGER.info(
+                    "step %d/%d train_loss=%.3f val_f1=%.4f",
+                    step,
+                    max_steps,
+                    loss.item(),
+                    validation["f1"],
+                )
                 if validation["f1"] > best:
                     best = validation["f1"]
                     model.save_pretrained(destination)
@@ -203,13 +228,14 @@ def train_funsd_layoutlm(config: Config) -> dict:
         split={"train": len(train), "val": len(val), "test": len(test)},
         pretrained_source=settings.model_name,
         fine_tuning="full",
+        box_level=level,
         max_steps=max_steps,
         best_validation_f1=best,
         device=device,
         checkpoint=str(destination),
-        note="Word-level entity F1 (seqeval) with ground-truth words and boxes; "
+        note="Entity F1 (seqeval) over words with ground-truth text; "
         "words beyond 512 tokens are truncated and not scored.",
     )
-    write_json(config.paths.artifacts / "metrics/document_layoutlm_funsd.json", metrics)
-    record_run(config, "layoutlm_funsd", metrics)
+    write_json(config.paths.artifacts / f"metrics/document_layoutlm_funsd{suffix}.json", metrics)
+    record_run(config, f"layoutlm_funsd{suffix}", metrics)
     return metrics
