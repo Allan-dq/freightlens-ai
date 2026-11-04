@@ -1,0 +1,490 @@
+[
+  {
+    "id": "83594639",
+    "image": "examples/forms/83594639.jpg",
+    "words": 87,
+    "word_label_accuracy": 0.8851,
+    "entities": [
+      [
+        "question",
+        "Date:"
+      ],
+      [
+        "question",
+        "To:"
+      ],
+      [
+        "question",
+        "Company:"
+      ],
+      [
+        "question",
+        "From:"
+      ],
+      [
+        "answer",
+        "Lorillard"
+      ],
+      [
+        "header",
+        "ROPER STARCH"
+      ],
+      [
+        "question",
+        "Fax Fax Fax Fax Fax Fax Fax Fax Fax"
+      ],
+      [
+        "answer",
+        "Ron Milstein"
+      ],
+      [
+        "answer",
+        "(910) 335 7707"
+      ],
+      [
+        "question",
+        "Pages (Including cover page):"
+      ],
+      [
+        "answer",
+        "\"JJ\" Klein"
+      ],
+      [
+        "question",
+        "Fax Number:"
+      ],
+      [
+        "answer",
+        "September 22, 1997"
+      ]
+    ]
+  },
+  {
+    "id": "86230203_0206",
+    "image": "examples/forms/86230203_0206.jpg",
+    "words": 134,
+    "word_label_accuracy": 0.806,
+    "entities": [
+      [
+        "question",
+        "TO:"
+      ],
+      [
+        "question",
+        "FROM:"
+      ],
+      [
+        "question",
+        "SUBJECT:"
+      ],
+      [
+        "answer",
+        "X"
+      ],
+      [
+        "header",
+        "GEOGRAPHY"
+      ],
+      [
+        "question",
+        "REGION:"
+      ],
+      [
+        "question",
+        "DIVISION:"
+      ],
+      [
+        "question",
+        "FULL"
+      ],
+      [
+        "question",
+        "PARTIAL"
+      ],
+      [
+        "answer",
+        "x"
+      ],
+      [
+        "question",
+        "FULL"
+      ],
+      [
+        "question",
+        "PARTIAL"
+      ],
+      [
+        "header",
+        "DISTRIBUTION"
+      ],
+      [
+        "answer",
+        "Seyle"
+      ],
+      [
+        "answer",
+        "Dantzlen"
+      ],
+      [
+        "answer",
+        "Econ"
+      ],
+      [
+        "answer",
+        "180"
+      ],
+      [
+        "answer",
+        "130"
+      ],
+      [
+        "answer",
+        "20"
+      ],
+      [
+        "answer",
+        "19"
+      ],
+      [
+        "answer",
+        "18"
+      ],
+      [
+        "answer",
+        "18"
+      ],
+      [
+        "answer",
+        "17"
+      ],
+      [
+        "answer",
+        "16"
+      ],
+      [
+        "answer",
+        "K&B"
+      ],
+      [
+        "answer",
+        "Delchamps"
+      ],
+      [
+        "answer",
+        "Litco"
+      ],
+      [
+        "answer",
+        "85"
+      ],
+      [
+        "answer",
+        "39"
+      ],
+      [
+        "answer",
+        "36"
+      ],
+      [
+        "answer",
+        "36"
+      ],
+      [
+        "answer",
+        "23"
+      ],
+      [
+        "answer",
+        "23"
+      ],
+      [
+        "answer",
+        "22"
+      ],
+      [
+        "answer",
+        "K. A. Sparrow"
+      ],
+      [
+        "answer",
+        "F. Strickland"
+      ],
+      [
+        "answer",
+        "MAVERICK SPECIALS- PROGRESS REPORT"
+      ],
+      [
+        "header",
+        "SUBMISSION DATE"
+      ],
+      [
+        "question",
+        "DEC 13"
+      ],
+      [
+        "question",
+        "JAN 25"
+      ],
+      [
+        "question",
+        "FEB 24"
+      ],
+      [
+        "question",
+        "APR 4"
+      ],
+      [
+        "question",
+        "DIVISION NAME:"
+      ],
+      [
+        "question",
+        "DIVISION NAME:"
+      ],
+      [
+        "question",
+        "DIVISION NAME:"
+      ],
+      [
+        "question",
+        "# REPS"
+      ],
+      [
+        "question",
+        "# REPS"
+      ],
+      [
+        "question",
+        "# REPS"
+      ],
+      [
+        "question",
+        "DIVISION:"
+      ],
+      [
+        "question",
+        "DIVISION NAME:"
+      ],
+      [
+        "question",
+        "DIVISION NAME:"
+      ],
+      [
+        "header",
+        "DIRECT ACCOUNTS AND CHAINS HEADQUARTERED WITHIN THE REGION (15+ STORES) STOCKING NO MAVERICK SPECIALS"
+      ],
+      [
+        "question",
+        "NAME OF ACCOUNT"
+      ],
+      [
+        "question",
+        "NO. OF STORES"
+      ],
+      [
+        "question",
+        "NAME OF ACCOUNT"
+      ],
+      [
+        "question",
+        "NO OF STORES"
+      ],
+      [
+        "answer",
+        "Winn Dixie Schwegmann"
+      ],
+      [
+        "answer",
+        "Aurry Greer"
+      ],
+      [
+        "answer",
+        "Double"
+      ],
+      [
+        "answer",
+        "Huber Oil Morris Corp"
+      ],
+      [
+        "answer",
+        "Bayou Foods"
+      ],
+      [
+        "answer",
+        "Compac Foods"
+      ],
+      [
+        "answer",
+        "Southeast Foods"
+      ]
+    ]
+  },
+  {
+    "id": "82251504",
+    "image": "examples/forms/82251504.jpg",
+    "words": 222,
+    "word_label_accuracy": 0.7117,
+    "entities": [
+      [
+        "answer",
+        "17"
+      ],
+      [
+        "question",
+        "cc:"
+      ],
+      [
+        "question",
+        ":"
+      ],
+      [
+        "question",
+        "From:"
+      ],
+      [
+        "question",
+        "Area:"
+      ],
+      [
+        "question",
+        "Region:"
+      ],
+      [
+        "answer",
+        "5"
+      ],
+      [
+        "answer",
+        "X"
+      ],
+      [
+        "header",
+        "Chains:"
+      ],
+      [
+        "header",
+        "Independents:"
+      ],
+      [
+        "header",
+        "Retail Excel Progress Report"
+      ],
+      [
+        "question",
+        "Submission for:"
+      ],
+      [
+        "question",
+        "Distribution by/ to:"
+      ],
+      [
+        "answer",
+        "DM to RSM 1st of Month"
+      ],
+      [
+        "answer",
+        "RSM to R W. C. 10th"
+      ],
+      [
+        "answer",
+        "R. W. Caldarella"
+      ],
+      [
+        "answer",
+        "Kent B. Mills"
+      ],
+      [
+        "question",
+        "July 31"
+      ],
+      [
+        "question",
+        "August 29"
+      ],
+      [
+        "question",
+        "September 30"
+      ],
+      [
+        "question",
+        "October 31"
+      ],
+      [
+        "question",
+        "November 28"
+      ],
+      [
+        "question",
+        "December 30"
+      ],
+      [
+        "header",
+        "Acceptance/ Response:"
+      ],
+      [
+        "answer",
+        "What is the retailers response to Lorillard's Excel"
+      ],
+      [
+        "question",
+        "Merchandising"
+      ],
+      [
+        "answer",
+        "plan?"
+      ],
+      [
+        "answer",
+        "This program has been successful to date with chains where our \"Flex Payment\". was not place. The chains where were using the \"Flex Payment\" system we have not been las successful. The P. O. S. requirements of the P- 1 Plan with Oil Companies is difficult to obtain."
+      ],
+      [
+        "question",
+        "Additional P. V. merchandising is being"
+      ],
+      [
+        "answer",
+        "Additional monies have assisted Region 17 in fighting PM Exclusives and PM/ RJR co-existence situations."
+      ],
+      [
+        "header",
+        "Hardware Evaluation/ Effectiveness:"
+      ],
+      [
+        "answer",
+        "Comment on the assembly of displays and"
+      ],
+      [
+        "question",
+        "application of"
+      ],
+      [
+        "answer",
+        "shields:"
+      ],
+      [
+        "answer",
+        "The displays are easily assembled and durable. Some questions have been raised conceming the inability to be flush with the counter and/ or against the register."
+      ],
+      [
+        "answer",
+        "As well as the ability to place this or the Back Bar if the settlement goes through"
+      ],
+      [
+        "header",
+        "Pemanent Advertising Evaluation/ Effectiveness/ Acceptance:"
+      ],
+      [
+        "answer",
+        "(P- 1/ P- 5 & C 5"
+      ],
+      [
+        "header",
+        "Plans Only:"
+      ],
+      [
+        "answer",
+        "Not available at this time"
+      ]
+    ]
+  }
+]
