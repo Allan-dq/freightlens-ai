@@ -206,3 +206,14 @@ def test_nms_merge_removes_duplicates_from_overlapping_tiles():
     kept_boxes, kept_scores, kept_classes = nms_merge(boxes, scores, classes, 0.6)
     assert sorted(kept_scores.tolist()) == [0.7, 0.9]
     assert sorted(kept_classes.tolist()) == [0, 1]
+
+
+def test_final_config_trains_on_all_non_test_sessions_without_validation():
+    config = load_config("configs/real_final.yaml")
+    loco = config.vision.loco
+    assert sorted(loco.train_subsets) == [2, 3, 5] and loco.val_subsets == []
+    assert not set(loco.train_subsets) & set(loco.test_subsets)
+    assert (
+        config.vision.detector.epochs == 37 and config.vision.detector.validate_each_epoch is False
+    )
+    assert config.paths.data != load_config("configs/real.yaml").paths.data

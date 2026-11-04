@@ -1,0 +1,9 @@
+# Final detector: train on every LOCO session outside the test set (2, 3 and 5) for the epoch
+# count selected on validation with configs/real.yaml (best epoch 37), keep the last checkpoint,
+# and score the untouched test sessions (1 and 4) once. Separate roots keep the development
+# split, model and metrics intact.
+extends: real.yaml
+paths: {data: data/full-final, models: models/full-final, artifacts: artifacts/full-final}
+vision:
+  loco: {train_subsets: [2, 3, 5], val_subsets: [], test_subsets: [1, 4]}
+  detector: {epochs: 37, validate_each_epoch: false}

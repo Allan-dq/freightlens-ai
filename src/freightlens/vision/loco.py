@@ -141,7 +141,9 @@ def prepare_loco(config: Config) -> dict:
             {
                 "path": str(target.resolve()),
                 "train": "images/train",
-                "val": "images/val",
+                # Without a validation session (final fixed-epoch training) Ultralytics still
+                # runs one end-of-training pass; point it at the training images, never test.
+                "val": "images/val" if settings.val_subsets else "images/train",
                 "test": "images/test",
                 "names": dict(enumerate(names)),
             }

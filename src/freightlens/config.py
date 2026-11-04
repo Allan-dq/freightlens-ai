@@ -75,6 +75,9 @@ class DetectorConfig(StrictModel):
     patience: int = Field(5, gt=0)
     device: str = "cpu"
     workers: int = Field(0, ge=0)
+    # False trains for a fixed number of epochs (chosen earlier on validation data) without
+    # per-epoch validation, and keeps the last checkpoint as the model.
+    validate_each_epoch: bool = True
 
 
 class TrackerConfig(StrictModel):

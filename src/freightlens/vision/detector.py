@@ -1,4 +1,5 @@
 import os
+import shutil
 from pathlib import Path
 
 from freightlens.config import Config
@@ -84,13 +85,20 @@ def train_detector(config: Config) -> dict:
         pretrained=True,
         plots=True,
         verbose=False,
+        val=settings.validate_each_epoch,
     )
+    weights = config.paths.models / "vision/pallet/weights"
+    if not settings.validate_each_epoch:
+        shutil.copyfile(weights / "last.pt", weights / "best.pt")
     metrics = {
         "status": "trained",
         "source": settings.model,
         "dataset": settings.dataset,
         "device": resolve_device(settings.device),
         "epochs_requested": settings.epochs,
+        "checkpoint_rule": "best validation fitness"
+        if settings.validate_each_epoch
+        else "last epoch",
         "metrics": result.results_dict,
     }
     write_json(config.paths.artifacts / "metrics/detector_training.json", metrics)
