@@ -128,6 +128,14 @@ uv run --no-sync freightlens report-real --config configs/real.yaml
 config, environment, seed and Git revision to `artifacts/full/runs/`. Dataset provenance and
 licenses are in [DATA_CARD.md](DATA_CARD.md); model details in [MODEL_CARD.md](MODEL_CARD.md).
 
+## Model weights
+
+Trained weights are on Hugging Face:
+[freightlens-yolo11n-loco](https://huggingface.co/AllanDai/freightlens-yolo11n-loco) (PyTorch and
+ONNX) and [freightlens-layoutlmv3-funsd](https://huggingface.co/AllanDai/freightlens-layoutlmv3-funsd)
+(non-commercial). `scripts/publish_models.py` regenerates their model cards from the metric files.
+Release notes are in [CHANGELOG.md](CHANGELOG.md).
+
 ## Demo
 
 The [live demo](https://huggingface.co/spaces/AllanDai/freightlens-ai) is a static page in
