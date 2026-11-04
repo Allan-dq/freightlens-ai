@@ -22,15 +22,18 @@ The table is generated from the saved metric files by `freightlens report-real`.
 | Model | Trained on | Evaluated on | Metric | Value |
 |---|---|---|---|---|
 | YOLO11n detector | LOCO, 1,943 real warehouse images | LOCO, 2,277 images from unseen recording sessions | pallet AP50 | 0.522 |
-| YOLO11n detector | | | pallet AP50-95 | 0.206 |
-| YOLO11n detector | | | mAP50, all 5 classes | 0.271 |
-| YOLO11n detector | | | pallet count MAE per image | 7.22 |
+| | | | pallet AP50-95 | 0.206 |
+| | | | mAP50, all 5 classes | 0.271 |
+| | | | pallet count error per image (MAE) | 7.2 |
 | LayoutLMv3-base, word boxes (OCR setting) | FUNSD, 134 scanned forms | FUNSD official test, 50 forms | entity F1 | 0.797 |
 | LayoutLMv3-base, segment boxes | FUNSD, 134 scanned forms | FUNSD official test, 50 forms | entity F1 | 0.878 |
-| YOLO11n, 640 px | | Apple M1 Pro, cpu | median latency | 36 ms |
-| YOLO11n, 640 px | | Apple M1 Pro, mps | median latency | 19 ms |
-| LayoutLMv3-base, 512 tokens | | Apple M1 Pro, cpu | median latency | 263 ms |
-| LayoutLMv3-base, 512 tokens | | Apple M1 Pro, mps | median latency | 151 ms |
+
+Median single-image latency on Apple M1 Pro:
+
+| Model | CPU | MPS |
+|---|---|---|
+| YOLO11n, 640 px input | 36 ms | 19 ms |
+| LayoutLMv3-base, 512 tokens (OCR excluded) | 263 ms | 151 ms |
 <!-- REAL_RESULTS_END -->
 
 - **LOCO** ([tum-fml/loco](https://github.com/tum-fml/loco), CC0) contains photos taken while

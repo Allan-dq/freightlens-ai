@@ -10,6 +10,10 @@ from freightlens.config import Config
 from freightlens.io import read_json
 
 START, END = "<!-- REAL_RESULTS_START -->", "<!-- REAL_RESULTS_END -->"
+LATENCY_MODELS = {
+    "detector_yolo11n_640": "YOLO11n, 640 px input",
+    "layoutlmv3_base_512_tokens": "LayoutLMv3-base, 512 tokens (OCR excluded)",
+}
 
 
 def _load(path: Path) -> dict | None:
@@ -32,13 +36,13 @@ def results_table(config: Config) -> str:
         splits = loco["splits"]
         trained = f"LOCO, {splits['train']['images']:,} real warehouse images"
         tested = f"LOCO, {splits['test']['images']:,} images from unseen recording sessions"
-        model = "YOLO11n detector"
         rows += [
-            f"| {model} | {trained} | {tested} | pallet AP50 | {_fmt(detection['pallet_AP50'])} |",
-            f"| {model} | | | pallet AP50-95 | {_fmt(detection['pallet_AP50_95'])} |",
-            f"| {model} | | | mAP50, all 5 classes | {_fmt(detection['mAP50'])} |",
-            f"| {model} | | | pallet count MAE per image | "
-            f"{_fmt(detection['pallet_count_mae'], 2)} |",
+            f"| YOLO11n detector | {trained} | {tested} | pallet AP50 | "
+            f"{_fmt(detection['pallet_AP50'])} |",
+            f"| | | | pallet AP50-95 | {_fmt(detection['pallet_AP50_95'])} |",
+            f"| | | | mAP50, all 5 classes | {_fmt(detection['mAP50'])} |",
+            f"| | | | pallet count error per image (MAE) | "
+            f"{_fmt(detection['pallet_count_mae'], 1)} |",
         ]
     else:
         rows.append("| YOLO11n detector | LOCO | LOCO | pallet AP50 | not run |")
@@ -52,15 +56,18 @@ def results_table(config: Config) -> str:
         )
     latency = _load(metrics / "latency.json")
     if latency:
-        for key, label in [
-            ("detector_yolo11n_640", "YOLO11n, 640 px"),
-            ("layoutlmv3_base_512_tokens", "LayoutLMv3-base, 512 tokens"),
-        ]:
-            for device, values in latency[key].items():
-                rows.append(
-                    f"| {label} | | {latency['hardware']}, {device} | median latency | "
-                    f"{values['median_ms']:.0f} ms |"
-                )
+        devices = sorted({d for key in LATENCY_MODELS for d in latency.get(key, {})})
+        rows += [
+            "",
+            f"Median single-image latency on {latency['hardware']}:",
+            "",
+            "| Model | " + " | ".join(d.upper() for d in devices) + " |",
+            "|---|" + "---|" * len(devices),
+        ]
+        for key, label in LATENCY_MODELS.items():
+            values = latency.get(key, {})
+            cells = [f"{values[d]['median_ms']:.0f} ms" if d in values else "-" for d in devices]
+            rows.append(f"| {label} | " + " | ".join(cells) + " |")
     return "\n".join(rows)
 
 

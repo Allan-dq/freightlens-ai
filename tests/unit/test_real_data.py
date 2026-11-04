@@ -123,3 +123,24 @@ def test_real_results_table_renders_measured_values_only(tmp_path):
     update_readme(config, readme)
     text = readme.read_text(encoding="utf-8")
     assert "old" not in text and text.endswith("footer\n") and "0.500" in text
+
+
+def test_real_results_latency_is_a_separate_device_table(tmp_path):
+    from freightlens.io import write_json
+    from freightlens.real_results import results_table
+
+    config = load_config("configs/real.yaml")
+    config.paths.artifacts = tmp_path / "artifacts"
+    config.paths.data = tmp_path / "data"
+    write_json(
+        config.paths.artifacts / "metrics/latency.json",
+        {
+            "hardware": "Test CPU",
+            "detector_yolo11n_640": {"cpu": {"median_ms": 36.2}, "mps": {"median_ms": 18.6}},
+            "layoutlmv3_base_512_tokens": {"cpu": {"median_ms": 263.0}},
+        },
+    )
+    table = results_table(config)
+    assert "| Model | CPU | MPS |" in table
+    assert "| YOLO11n, 640 px input | 36 ms | 19 ms |" in table
+    assert "| LayoutLMv3-base, 512 tokens (OCR excluded) | 263 ms | - |" in table
