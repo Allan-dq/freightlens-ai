@@ -1,0 +1,4 @@
+# FUNSD with segment-level boxes, the setting behind the published LayoutLMv3 score.
+extends: real.yaml
+document:
+  funsd: {box_level: segment}
