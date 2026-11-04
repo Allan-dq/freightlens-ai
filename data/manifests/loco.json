@@ -1,0 +1,40 @@
+{
+  "archive_sha256": "f3629d989071b824edc63e000f45ccc5826cfbb201a338f16ed87ab3e10bcdcf",
+  "classes": [
+    "small_load_carrier",
+    "forklift",
+    "pallet",
+    "stillage",
+    "pallet_truck"
+  ],
+  "license": "CC0-1.0",
+  "source": "https://github.com/tum-fml/loco",
+  "splits": {
+    "test": {
+      "boxes": 64492,
+      "images": 2277,
+      "missing_images": 0,
+      "subsets": [
+        1,
+        4
+      ]
+    },
+    "train": {
+      "boxes": 68308,
+      "images": 1943,
+      "missing_images": 0,
+      "subsets": [
+        2,
+        3
+      ]
+    },
+    "val": {
+      "boxes": 18628,
+      "images": 877,
+      "missing_images": 0,
+      "subsets": [
+        5
+      ]
+    }
+  }
+}

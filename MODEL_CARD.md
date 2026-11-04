@@ -12,8 +12,8 @@ inventory accounting or unattended exception resolution.
 |---|---|---|---|
 | OCR | [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) | Pretrained English PP-OCRv6 medium detection/recognition, CPU inference; no local OCR training | Apache-2.0 project; upstream model terms apply |
 | Field baseline | This repository | Deterministic labels, spatial grouping and numeric/unit validation | AGPL-3.0-or-later |
-| Layout experiment | [microsoft/layoutlmv3-base](https://huggingface.co/microsoft/layoutlmv3-base) | Frozen pretrained backbone, trained token-classification head; BIO labels; validation early stopping and best checkpoint | **CC BY-NC-SA 4.0** pretrained model; noncommercial restriction remains |
-| Pallet detector | [Ultralytics YOLO11n](https://docs.ultralytics.com/models/yolo11/) | Pretrained COCO initialization, single pallet-class fine-tuning on Palleset | Ultralytics AGPL-3.0 / separate commercial licensing |
+| Form model | [microsoft/layoutlmv3-base](https://huggingface.co/microsoft/layoutlmv3-base) | Full fine-tuning on FUNSD (1,000 steps, AdamW 1e-5, linear warm-up), best checkpoint by validation F1; the frozen-backbone head on generated freight forms is kept as a separate experiment | **CC BY-NC-SA 4.0** pretrained model; noncommercial restriction remains |
+| Warehouse detector | [Ultralytics YOLO11n](https://docs.ultralytics.com/models/yolo11/) | Pretrained COCO initialization, fine-tuned on LOCO real warehouse photos (5 classes) with session-level splits; Palleset single-class path kept for offline smoke | Ultralytics AGPL-3.0 / separate commercial licensing |
 | Tracking | [Ultralytics ByteTrack](https://docs.ultralytics.com/modes/track/) | Explicit `bytetrack.yaml`, persistent state per video, reset between videos | Ultralytics integration license applies |
 | Offline fixtures | This repository | Seeded OCR token corruption and pixel-color/centroid tracker; no learned-model claim | AGPL-3.0-or-later |
 | Reconciliation | This repository | Count/vehicle rules, transparent weighted score, review policy | AGPL-3.0-or-later |
@@ -23,6 +23,9 @@ noncommercial restriction is material to reuse. Model weights and downloaded dat
 committed to this repository.
 
 ## Evaluation and hardware
+
+Real-data training (LOCO detector, FUNSD LayoutLMv3) ran on an Apple M1 Pro with the PyTorch MPS
+backend; settings are in `configs/real.yaml` and each run is recorded under `artifacts/runs/`.
 
 Local verification used Python 3.11 on a Windows Intel Core i7-12700K CPU, without a GPU. Exact
 package versions are in `uv.lock`; every recorded experiment includes installed package versions,
