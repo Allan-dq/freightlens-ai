@@ -110,18 +110,18 @@ def export_forms(config, form_ids: list[str]) -> None:
     (WEB / "forms.json").write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
 
 
-def export_metrics(config) -> None:
+def export_metrics(config, detector_config) -> None:
     """Copy headline test metrics for the page header from the measured metric files."""
-    metrics = config.paths.artifacts / "metrics"
 
-    def read(name: str) -> dict:
-        return json.loads((metrics / name).read_text(encoding="utf-8"))
+    def read(cfg, name: str) -> dict:
+        path = cfg.paths.artifacts / "metrics" / name
+        return json.loads(path.read_text(encoding="utf-8"))
 
     payload = {
-        "pallet_AP50": read("pallet_detection.json")["pallet_AP50"],
-        "browser_pallet_AP50": read("pallet_detection_onnx.json")["pallet_AP50"],
-        "funsd_f1": read("document_layoutlm_funsd.json")["f1"],
-        "count_threshold": read("pallet_count_calibration.json")["threshold"],
+        "pallet_AP50": read(detector_config, "pallet_detection.json")["pallet_AP50"],
+        "browser_pallet_AP50": read(detector_config, "pallet_detection_onnx.json")["pallet_AP50"],
+        "funsd_f1": read(config, "document_layoutlm_funsd.json")["f1"],
+        "count_threshold": read(detector_config, "pallet_count_calibration.json")["threshold"],
         "review_threshold": config.reconciliation.vision_threshold,
         "document_threshold": config.reconciliation.document_threshold,
     }
@@ -129,11 +129,23 @@ def export_metrics(config) -> None:
 
 
 # Synthetic shipping documents paired with real LOCO test photos for the "verify a
-# shipment" tab. Indices select clean layouts of three different document types.
+# shipment" tab. Each document's pallet count is the photo's annotated (ground-truth) count
+# plus a chosen paperwork error, so the page can say whether a flag is real or a false alarm.
+# Indices select clean layouts of three different document types.
 SHIPMENTS = [
-    {"index": 36, "pallets": 6, "photo": "examples/warehouse/loco_1.jpg"},
-    {"index": 25, "pallets": 16, "photo": "examples/warehouse/loco_2.jpg"},
-    {"index": 26, "pallets": 12, "photo": "examples/warehouse/loco_4.jpg"},
+    {
+        "index": 36,
+        "photo": "loco_1.jpg",
+        "source": "s1_1564563502.8986418.jpg",
+        "paperwork_error": 0,
+    },
+    {"index": 25, "photo": "loco_2.jpg", "source": "s1_1564564588038,75.jpg", "paperwork_error": 3},
+    {
+        "index": 26,
+        "photo": "loco_4.jpg",
+        "source": "s4_1579165461.8499296.jpg",
+        "paperwork_error": 0,
+    },
 ]
 
 
@@ -148,11 +160,18 @@ def export_shipments(config) -> None:
 
     output = WEB / "examples/documents"
     output.mkdir(parents=True, exist_ok=True)
+    labels = config.paths.data / "processed/loco/labels/test"
     records = []
     with tempfile.TemporaryDirectory() as scratch:
         for spec in SHIPMENTS:
+            rows = (labels / f"{Path(spec['source']).stem}.txt").read_text().splitlines()
+            truth = sum(1 for row in rows if row.split() and row.split()[0] == "2")
             annotation = generate_one(
-                Path(scratch), spec["index"], config.seed, "demo", pallet_count=spec["pallets"]
+                Path(scratch),
+                spec["index"],
+                config.seed,
+                "demo",
+                pallet_count=truth + spec["paperwork_error"],
             )
             printed = read_json(annotation)["fields"]
             document, _ = analyze_document(annotation.with_suffix(".png"), config)
@@ -167,7 +186,10 @@ def export_shipments(config) -> None:
                     "shipment_id": document.shipment_id,
                     "document_type": document.document_type,
                     "image": f"examples/documents/{name}",
-                    "photo": spec["photo"],
+                    "photo": f"examples/warehouse/{spec['photo']}",
+                    "photo_source": f"LOCO test {spec['source']}",
+                    "photo_annotated_pallets": truth,
+                    "paperwork_error": spec["paperwork_error"],
                     "fields": [
                         {
                             "name": field,
@@ -192,13 +214,19 @@ def export_shipments(config) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="configs/real.yaml")
+    parser.add_argument(
+        "--detector-config",
+        default="configs/real_final.yaml",
+        help="Config whose trained detector the page runs (default: the final model)",
+    )
     parser.add_argument("--forms", nargs="+", default=["83594639", "86230203_0206", "82251504"])
     args = parser.parse_args()
     config = load_config(args.config)
-    export_detector(config)
+    detector_config = load_config(args.detector_config)
+    export_detector(detector_config)
     export_forms(config, args.forms)
     export_shipments(config)
-    export_metrics(config)
+    export_metrics(config, detector_config)
 
 
 if __name__ == "__main__":

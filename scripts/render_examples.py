@@ -85,11 +85,13 @@ def render_form(config, form_id: str, output: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="configs/real.yaml")
+    parser.add_argument("--detector-config", default="configs/real_final.yaml")
     parser.add_argument("--loco-image", required=True, help="File name in the LOCO test split")
     parser.add_argument("--funsd-form", required=True, help="FUNSD test form id")
     args = parser.parse_args()
     config = load_config(args.config)
-    render_detections(config, args.loco_image, Path("docs/images/loco_detections.jpg"))
+    detector_config = load_config(args.detector_config)
+    render_detections(detector_config, args.loco_image, Path("docs/images/loco_detections.jpg"))
     render_form(config, args.funsd_form, Path("docs/images/funsd_entities.jpg"))
 
 

@@ -19,16 +19,21 @@ def _read(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def detector_card(metrics: Path, manifest: dict) -> str:
-    detection = _read(metrics / "pallet_detection.json")
-    onnx = _read(metrics / "pallet_detection_onnx.json")
-    calibration = _read(metrics / "pallet_count_calibration.json")
-    latency = _read(metrics / "latency.json")["detector_yolo11n_640"]
+def detector_card(final_metrics: Path, dev_metrics: Path, manifest: dict, epochs: int) -> str:
+    final = _read(final_metrics / "pallet_detection.json")
+    development = _read(dev_metrics / "pallet_detection.json")
+    onnx = _read(final_metrics / "pallet_detection_onnx.json")
+    calibration = _read(final_metrics / "pallet_count_calibration.json")
+    latency = _read(dev_metrics / "latency.json")["detector_yolo11n_640"]
+    cpu_ms = latency["cpu"]["median_ms"]
+    mps_ms = latency.get("mps", {}).get("median_ms", float("nan"))
     splits = manifest["splits"]
     rows = "\n".join(
         f"| {name.replace('_', ' ')} | {values['AP50']:.3f} | {values['AP50_95']:.3f} |"
-        for name, values in sorted(detection["per_class"].items())
+        for name, values in sorted(final["per_class"].items())
     )
+    train = ", ".join(map(str, splits["train"]["subsets"]))
+    test = " and ".join(map(str, splits["test"]["subsets"]))
     return f"""---
 license: agpl-3.0
 library_name: ultralytics
@@ -49,34 +54,38 @@ Part of [FreightLens AI]({GITHUB}); try it in the browser in the [live demo]({DE
 
 ## Data and training
 
-LOCO is recorded as walks through facilities, so splits are whole recording sessions: sessions
-{", ".join(map(str, splits["train"]["subsets"]))} for training
-({splits["train"]["images"]:,} images),
-session {", ".join(map(str, splits["val"]["subsets"]))} for model selection
-({splits["val"]["images"]:,}) and sessions {" and ".join(map(str, splits["test"]["subsets"]))},
-LOCO's official validation sessions, for the single final test ({splits["test"]["images"]:,}).
-COCO-pretrained YOLO11n, 640 px input, batch 16, up to 50 epochs with early stopping
-(best epoch 37), Apple M1 Pro (MPS).
+LOCO is recorded as walks through facilities, so splits are whole recording sessions. A
+development model trained on sessions 2 and 3 and used session 5 to choose the epoch count
+(best epoch 37). This final model trains on sessions {train} ({splits["train"]["images"]:,}
+images) for {epochs} epochs and keeps the last checkpoint. Sessions {test}, LOCO's official
+validation sessions ({splits["test"]["images"]:,} images), were never used for training or
+selection and were scored once. COCO-pretrained YOLO11n, 640 px input, batch 16, Apple M1 Pro
+(MPS).
 
 ## Test results (unseen sessions)
 
 | Class | AP50 | AP50-95 |
 |---|---|---|
 {rows}
-| **all classes (mAP)** | **{detection["mAP50"]:.3f}** | **{detection["mAP50_95"]:.3f}** |
+| **all classes (mAP)** | **{final["mAP50"]:.3f}** | **{final["mAP50_95"]:.3f}** |
 
-- ONNX export: pallet AP50 {onnx["pallet_AP50"]:.3f} (PyTorch: {detection["pallet_AP50"]:.3f}).
-- Pallet counting at confidence {calibration["threshold"]:.2f} (chosen on validation): mean absolute
-  error {calibration["test_mae"]:.1f} pallets per image, bias {calibration["test_bias"]:+.1f}, with
-  {calibration["test_mean_pallets_per_image"]:.0f} pallets per image on average.
-- Median latency per image: {latency["cpu"]["median_ms"]:.0f} ms CPU,
-  {latency.get("mps", {}).get("median_ms", float("nan")):.0f} ms MPS (Apple M1 Pro).
+- Development model (sessions 2 and 3 only): pallet AP50 {development["pallet_AP50"]:.3f},
+  mAP50 {development["mAP50"]:.3f}. The third session adds {
+        final["pallet_AP50"] - development["pallet_AP50"]:+.3f} pallet AP50.
+- ONNX export: pallet AP50 {onnx["pallet_AP50"]:.3f} (PyTorch: {final["pallet_AP50"]:.3f}).
+- Pallet counting at confidence {calibration["threshold"]:.2f} (selected on validation for the
+  development model): mean absolute error {calibration["test_mae"]:.1f} pallets per image, bias
+  {calibration["test_bias"]:+.1f}, with {calibration["test_mean_pallets_per_image"]:.0f} pallets
+  per image on average.
+- Median latency per image (same architecture and input size): {cpu_ms:.0f} ms CPU,
+  {mps_ms:.0f} ms MPS (Apple M1 Pro).
 
 ## Limitations
 
 Small, distant pallets are often missed at 640 px. Forklifts and pallet trucks have only a few
 hundred training boxes. LOCO covers five facilities filmed from a walking camera; fixed dock
-cameras, other pallet types and night lighting are not represented.
+cameras, other pallet types and night lighting are not represented, and a counting threshold
+chosen at one site does not transfer reliably to another.
 """
 
 
@@ -139,22 +148,28 @@ The base model is CC BY-NC-SA 4.0, so these weights are for non-commercial use o
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="configs/real.yaml")
+    parser.add_argument("--detector-config", default="configs/real_final.yaml")
     parser.add_argument("--user", default="AllanDai")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     config = load_config(args.config)
+    detector_config = load_config(args.detector_config)
     metrics = config.paths.artifacts / "metrics"
-    manifest = _read(config.paths.data / "manifests/loco.json")
+    detector_metrics = detector_config.paths.artifacts / "metrics"
+    manifest = _read(detector_config.paths.data / "manifests/loco.json")
 
     build = Path("build/model-cards")
     detector_dir, layout_dir = build / "detector", build / "layoutlmv3"
     for directory in [detector_dir, layout_dir]:
         shutil.rmtree(directory, ignore_errors=True)
         directory.mkdir(parents=True)
-    weights = config.paths.models / "vision/pallet/weights"
+    weights = detector_config.paths.models / "vision/pallet/weights"
     shutil.copyfile(weights / "best.pt", detector_dir / "freightlens-yolo11n-loco.pt")
     shutil.copyfile(weights / "best.onnx", detector_dir / "freightlens-yolo11n-loco.onnx")
-    (detector_dir / "README.md").write_text(detector_card(metrics, manifest), encoding="utf-8")
+    card = detector_card(
+        detector_metrics, metrics, manifest, detector_config.vision.detector.epochs
+    )
+    (detector_dir / "README.md").write_text(card, encoding="utf-8")
     shutil.copytree(
         config.paths.models / "document/layoutlmv3-funsd",
         layout_dir,
