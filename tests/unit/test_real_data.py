@@ -114,15 +114,22 @@ def test_real_results_table_renders_measured_values_only(tmp_path):
         },
     )
     table = results_table(config)
+    assert "| pallet count error per image (MAE) | 3.0 |" in table
+    write_json(
+        config.paths.artifacts / "metrics/pallet_count_calibration.json",
+        {"threshold": 0.25, "test_mae": 7.21, "test_bias": -0.91},
+    )
+    table = results_table(config)
+    assert "threshold 0.25 chosen on validation (MAE / bias) | 7.2 / -0.9 |" in table
     assert "| pallet AP50 | 0.500 |" in table
     assert "1,943 real warehouse images" in table
     assert table.count("not run") == 2
 
     readme = tmp_path / "README.md"
-    readme.write_text(f"intro\n{START}\nold\n{END}\nfooter\n", encoding="utf-8")
+    readme.write_text(f"intro\n{START}\nSTALE_ROW\n{END}\nfooter\n", encoding="utf-8")
     update_readme(config, readme)
     text = readme.read_text(encoding="utf-8")
-    assert "old" not in text and text.endswith("footer\n") and "0.500" in text
+    assert "STALE_ROW" not in text and text.endswith("footer\n") and "0.500" in text
 
 
 def test_real_results_latency_is_a_separate_device_table(tmp_path):
@@ -144,3 +151,17 @@ def test_real_results_latency_is_a_separate_device_table(tmp_path):
     assert "| Model | CPU | MPS |" in table
     assert "| YOLO11n, 640 px input | 36 ms | 19 ms |" in table
     assert "| LayoutLMv3-base, 512 tokens (OCR excluded) | 263 ms | - |" in table
+
+
+def test_count_threshold_is_selected_by_validation_mae():
+    import numpy as np
+
+    from freightlens.vision.calibration import count_errors, select_threshold
+
+    confidences = [np.array([0.9, 0.6, 0.3]), np.array([0.8, 0.2]), np.array([0.7, 0.5, 0.4])]
+    truths = np.array([2, 1, 3])
+    assert count_errors(confidences, truths, 0.5) == (1 / 3, -1 / 3)
+    choice = select_threshold(confidences, truths, grid=[0.25, 0.35, 0.45, 0.65])
+    assert choice["threshold"] == 0.35
+    assert choice["mae"] == 0.0
+    assert [row["threshold"] for row in choice["curve"]] == [0.25, 0.35, 0.45, 0.65]

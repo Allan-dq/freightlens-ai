@@ -41,9 +41,19 @@ def results_table(config: Config) -> str:
             f"{_fmt(detection['pallet_AP50'])} |",
             f"| | | | pallet AP50-95 | {_fmt(detection['pallet_AP50_95'])} |",
             f"| | | | mAP50, all 5 classes | {_fmt(detection['mAP50'])} |",
-            f"| | | | pallet count error per image (MAE) | "
-            f"{_fmt(detection['pallet_count_mae'], 1)} |",
         ]
+        calibration = _load(metrics / "pallet_count_calibration.json")
+        if calibration:
+            rows.append(
+                f"| | | | pallet count error per image, threshold "
+                f"{calibration['threshold']:.2f} chosen on validation (MAE / bias) | "
+                f"{calibration['test_mae']:.1f} / {calibration['test_bias']:+.1f} |"
+            )
+        else:
+            rows.append(
+                f"| | | | pallet count error per image (MAE) | "
+                f"{_fmt(detection['pallet_count_mae'], 1)} |"
+            )
     else:
         rows.append("| YOLO11n detector | LOCO | LOCO | pallet AP50 | not run |")
     for suffix, label in [("", "word boxes (OCR setting)"), ("-segment", "segment boxes")]:

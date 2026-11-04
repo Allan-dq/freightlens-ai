@@ -158,3 +158,13 @@ boxes, which reuse annotated entity extents and match the protocol of the publis
 thresholds, while the pallet count error uses the operating threshold of 0.25, so the two can
 move independently. The main detector weakness is recall on small, distant pallets at 640 px;
 the next experiment is training at a higher input resolution.
+
+**Counting threshold.** AP summarizes all confidence thresholds, but counting needs one operating
+point. `freightlens vision calibrate` caches pallet predictions at confidence 0.01, sweeps 0.05 to
+0.80 on the validation session and keeps the threshold with the lowest mean absolute count error;
+the test sessions are then scored once at that threshold. The sweep selected 0.25, so the default
+was already the best operating point. On the test sessions the count error is 7.2 pallets per
+image with a mean bias of −0.9, which shows that misses and false positives largely offset each
+other rather than the model systematically undercounting.
+
+![Validation count error against confidence threshold](docs/images/count_threshold.png)

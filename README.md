@@ -28,7 +28,7 @@ The table is generated from the saved metric files by `freightlens report-real`.
 | YOLO11n detector | LOCO, 1,943 real warehouse images | LOCO, 2,277 images from unseen recording sessions | pallet AP50 | 0.522 |
 | | | | pallet AP50-95 | 0.206 |
 | | | | mAP50, all 5 classes | 0.271 |
-| | | | pallet count error per image (MAE) | 7.2 |
+| | | | pallet count error per image, threshold 0.25 chosen on validation (MAE / bias) | 7.2 / -0.9 |
 | LayoutLMv3-base, word boxes (OCR setting) | FUNSD, 134 scanned forms | FUNSD official test, 50 forms | entity F1 | 0.797 |
 | LayoutLMv3-base, segment boxes | FUNSD, 134 scanned forms | FUNSD official test, 50 forms | entity F1 | 0.878 |
 
@@ -54,9 +54,13 @@ Median single-image latency on Apple M1 Pro:
 ### Error analysis
 
 - **Distant pallets are missed.** Test images hold 23 pallets on average (median 16), many only a
-  few pixels tall after resizing 1920×1080 frames to 640 px. Overall recall is the weak side, and
-  the per-image pallet count is off by 7.2 on average. Training at a higher input resolution is
-  the next experiment.
+  few pixels tall after resizing 1920×1080 frames to 640 px, so recall is the weak side. Training
+  at a higher input resolution is the next experiment.
+- **Count errors go both ways.** The counting threshold was chosen on the validation session by
+  minimizing per-image count error; the sweep landed on 0.25. At that point the test count is off
+  by 7.2 pallets per image but the mean bias is only −0.9: missed pallets and false positives
+  roughly cancel. Lower thresholds overcount sharply, higher ones
+  undercount ([curve](docs/images/count_threshold.png)).
 - **Rare classes are unstable.** Forklifts and pallet trucks have a few hundred training boxes
   each, against 57,000 pallets, and their AP stays low.
 - **Large carton stacks look like small load carriers** at a distance, as in the image above.
