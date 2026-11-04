@@ -32,7 +32,7 @@ packages = ["src/freightlens"]
 [tool.ruff]
 target-version = "py311"
 line-length = 100
-extend-exclude = [".tools", "data", "artifacts", "models"]
+extend-exclude = [".tools", ".venv-ci", "data", "artifacts", "models"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
@@ -43,7 +43,7 @@ python_version = "3.11"
 ignore_missing_imports = true
 check_untyped_defs = true
 warn_unused_ignores = true
-exclude = [".venv", ".tools"]
+exclude = [".venv", ".venv-ci", ".tools"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

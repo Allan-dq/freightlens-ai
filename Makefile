@@ -1,4 +1,4 @@
-.PHONY: install lint test smoke data document vision reconcile demo report api
+.PHONY: install lint test smoke ci-local data document vision reconcile demo report api
 install:
 	uv sync --extra dev
 lint:
@@ -10,6 +10,12 @@ test:
 smoke:
 	uv run freightlens demo --config configs/smoke.yaml
 	uv run pytest -q
+# Lint, type-check and test in a dev-only environment, as GitHub Actions does. Optional
+# extras (torch, ultralytics) change what mypy and pytest see, so check without them.
+ci-local:
+	UV_PROJECT_ENVIRONMENT=.venv-ci uv sync --locked --extra dev
+	UV_PROJECT_ENVIRONMENT=.venv-ci $(MAKE) lint test
+	command -v node >/dev/null && node demo/web/tests/reconcile.test.js || echo "node not found; the parity check runs in CI"
 data:
 	uv run freightlens data generate-documents --config configs/base.yaml
 	uv run freightlens data download-palleset --config configs/base.yaml
