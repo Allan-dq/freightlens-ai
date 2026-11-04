@@ -1,88 +1,148 @@
 # FreightLens AI
 
-**Multimodal Freight Document & Visual Verification System**
+[![CPU checks](https://github.com/Allan-dq/freightlens-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/Allan-dq/freightlens-ai/actions/workflows/ci.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
+![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 
-Convert freight documents and visual activity into expected and observed shipment states, then
-report discrepancies with evidence and a human-review policy.
+**Freight document and warehouse-camera verification.** FreightLens reads what a shipment's
+paperwork says, counts what the camera actually sees, and reports the differences with evidence.
 
-Python 3.11 · PaddleOCR · LayoutLMv3 · YOLO · ByteTrack · FastAPI
+![Pallet and equipment detections on an unseen LOCO warehouse session](docs/images/loco_detections.jpg)
 
-## Demo
+<sub>YOLO11n detections on a LOCO test image from a recording session never seen in training.
+Green: pallets, yellow: small load carriers. The large carton stack on the right is a typical
+error: it is tagged as small load carriers.</sub>
 
-```bash
-uv sync --extra dev
-make smoke
-```
+## Results on real public data
 
-The offline demo generates a freight document expecting three pallets and a controlled video
-with two line crossings. It extracts the fields, counts decoded video objects and writes a
-`MISSING_PALLET` report. Offline OCR is an explicitly labeled fixture; it is not model OCR.
+Both models are fine-tuned on real, public datasets and scored once on held-out test splits.
+The table is generated from the saved metric files by `freightlens report-real`.
 
-After running, inspect the generated outputs (not committed to the repository):
+<!-- REAL_RESULTS_START -->
+| Model | Trained on | Evaluated on | Metric | Value |
+|---|---|---|---|---|
+| YOLO11n detector | LOCO, 1,943 real warehouse images | LOCO, 2,277 images from unseen recording sessions | pallet AP50 | 0.522 |
+| YOLO11n detector | | | pallet AP50-95 | 0.206 |
+| YOLO11n detector | | | mAP50, all 5 classes | 0.271 |
+| YOLO11n detector | | | pallet count MAE per image | 7.22 |
+| LayoutLMv3-base, word boxes (OCR setting) | FUNSD, 134 scanned forms | FUNSD official test, 50 forms | entity F1 | 0.797 |
+| LayoutLMv3-base, segment boxes | FUNSD, 134 scanned forms | FUNSD official test, 50 forms | entity F1 | 0.878 |
+| YOLO11n, 640 px | | Apple M1 Pro, cpu | median latency | 36 ms |
+| YOLO11n, 640 px | | Apple M1 Pro, mps | median latency | 19 ms |
+| LayoutLMv3-base, 512 tokens | | Apple M1 Pro, cpu | median latency | 263 ms |
+| LayoutLMv3-base, 512 tokens | | Apple M1 Pro, mps | median latency | 151 ms |
+<!-- REAL_RESULTS_END -->
 
-- `artifacts/demo/document_annotated.png`: annotated freight form
-- `artifacts/demo/tracking_demo.mp4`: annotated tracking video
-- `artifacts/demo/report.json`: shipment verification report
-- `artifacts/metrics/summary.json`: metric summary
+- **LOCO** ([tum-fml/loco](https://github.com/tum-fml/loco), CC0) contains photos taken while
+  walking through real logistics facilities. Train, validation and test come from different
+  recording sessions, so near-duplicate frames never leak across splits.
+- **FUNSD** is the standard benchmark for understanding noisy scanned forms. *Word boxes* give each
+  word its own box, as an OCR engine would on a new document. *Segment boxes* give every word its
+  annotated entity box, the setting used for the published LayoutLMv3 FUNSD score (90.3 F1); that
+  setting relies on ground-truth entity extents and is reported only for comparison.
 
-`make demo` runs a larger offline demonstration with seven video scenarios and 100 reconciliation
-cases. Its outputs are isolated under `artifacts/demo-run/`. Open the local FastAPI interactive
-documentation at [localhost:8000/docs](http://localhost:8000/docs) to exercise the service.
+<img src="docs/images/funsd_entities.jpg" width="420" align="right"
+     alt="LayoutLMv3 entity predictions on a FUNSD test form">
 
-## Why This Project
+### Error analysis
 
-Freight records describe expected activity; camera observations describe physical activity.
-FreightLens makes the common state and the disagreement explicit. It demonstrates reproducible
-data generation, document parsing, visual event abstraction and uncertainty-aware reconciliation.
-It makes no claim of real warehouse deployment or measured business savings.
+- **Distant pallets are missed.** Test images hold 23 pallets on average (median 16), many only a
+  few pixels tall after resizing 1920×1080 frames to 640 px. Overall recall is the weak side, and
+  the per-image pallet count is off by 7.2 on average. Training at a higher input resolution is
+  the next experiment.
+- **Rare classes are unstable.** Forklifts and pallet trucks have a few hundred training boxes
+  each, against 57,000 pallets, and their AP stays low.
+- **Large carton stacks look like small load carriers** at a distance, as in the image above.
+- **Form headers are the hardest entity** on FUNSD (fewest examples), while questions and
+  answers are labeled reliably (right: blue questions, green answers, orange headers).
 
-## Architecture
+<br clear="right">
+
+## How it works
 
 ```mermaid
 flowchart LR
-    A[Freight PDF / Scan] --> B[PaddleOCR]
-    B --> C[Rule Parser]
-    D[Generated words + boxes + image] --> E[LayoutLMv3 experiment]
-    C --> F[Expected Shipment State]
-    G[Warehouse Visual Input] --> H[YOLO Pallet Detector]
-    H --> I[ByteTrack]
-    I --> J[Line / Zone Events]
-    J --> K[Observed Shipment State]
-    F --> L[Reconciliation + Review Policy]
-    K --> L
-    L --> M[Evidence + Anomaly Report]
-    M --> N[FastAPI]
+    A[Freight PDF / scan] --> B[OCR: PaddleOCR or Tesseract]
+    B --> C[LayoutLMv3 + rule parser]
+    C --> D[Expected shipment state]
+    E[Warehouse camera] --> F[YOLO11n detector]
+    F --> G[ByteTrack + line and zone events]
+    G --> H[Observed shipment state]
+    D --> I[Reconciliation + review policy]
+    H --> I
+    I --> J[Anomaly report with evidence]
+    J --> K[FastAPI service]
 ```
 
-LayoutLMv3 is a separately evaluated token-classification experiment. Offline smoke replaces
-OCR with labeled token fixtures and YOLO/ByteTrack with a pixel-color/centroid test tracker.
-The real model paths and fixture paths expose their identity in outputs.
-
-## What It Does
-
-| Area | Implemented behavior |
+| Area | What is implemented |
 |---|---|
-| Document AI | Four form types, three layouts each; PDF/PNG/JSON; clean and degraded scans; OCR adapter; spatial label parsing; normalization; confidence; field metrics; LayoutLMv3 training/evaluation |
-| Vision | Revision-pinned public RGB/NPY subset; YOLO labels; pretrained fine-tuning; held-out AP/count error; seven generated trajectory types; persistent ByteTrack; directional line/zone events |
-| Reconciliation | Expected and observed schemas; count/vehicle differences; missing evidence; review policy; auditable weighted score; reproducible upstream-noise scenarios |
-| Engineering | Package/CLI, FastAPI uploads, validated YAML profiles, saved experiment metadata, Docker, Ruff, mypy, pytest, offline CI and manual model workflow |
+| Documents | PDF/PNG ingestion, OCR adapters, LayoutLMv3 token classification, spatial rule parser with unit normalization and confidence |
+| Vision | YOLO11n detection (LOCO classes), ByteTrack tracking, directional line and zone crossing events, pallet counting |
+| Reconciliation | Expected vs. observed shipment states, count and vehicle checks, missing-evidence handling, human-review routing |
+| Engineering | Typed config with inheritance, CLI, FastAPI with upload limits, Docker, recorded runs (config, seed, versions, Git revision), Ruff, mypy, pytest, CI |
 
-## Data
+## Quick start
 
-Public **synthetic** Palleset imagery supports detection. Locally generated freight forms and
-controlled videos support the paired demonstration. Public **real** FUNSD forms provide separate
-OCR ingestion validation and are not presented as freight data.
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/).
 
-The default full subset is 200/60/60 images. The downloader fetches only selected RGB images and
-2D box annotations, checks download size in advance and saves revision, IDs and checksums.
-See [DATA_CARD.md](DATA_CARD.md) and [MODEL_CARD.md](MODEL_CARD.md).
+```bash
+git clone https://github.com/Allan-dq/freightlens-ai.git
+cd freightlens-ai
+uv sync --extra dev
+make smoke   # offline end-to-end run on generated fixtures, no downloads
+make lint test
+```
 
-## Results
+## Reproduce the real-data results
 
-The table below is regenerated by `make report` from saved metric JSON. Scores have different
-units and evaluation scopes: parser field F1, token-entity F1, detector AP and event F1 are not
-interchangeable. The pretrained model smoke runs are deliberately undertrained integration
-checks. Full training is a separate command; smoke numbers are not full-training results.
+```bash
+uv sync --extra dev --extra layout --extra vision
+
+# Detector: download LOCO (769 MB archive + COCO annotations) into data/full/raw/loco, then
+uv run --no-sync freightlens data prepare-loco --config configs/real.yaml
+uv run --no-sync freightlens vision train --config configs/real.yaml
+
+# Form model
+uv run --no-sync freightlens data download-funsd --config configs/real.yaml
+uv run --no-sync freightlens document train-funsd --config configs/real.yaml
+uv run --no-sync freightlens document train-funsd --config configs/real_segment.yaml
+
+# Latency and README table
+uv run --no-sync python scripts/benchmark_latency.py --config configs/real.yaml
+uv run --no-sync freightlens report-real --config configs/real.yaml
+```
+
+`configs/real.yaml` picks CUDA, Apple MPS or CPU automatically. Every measured stage writes its
+config, environment, seed and Git revision to `artifacts/full/runs/`. Dataset provenance and
+licenses are in [DATA_CARD.md](DATA_CARD.md); model details in [MODEL_CARD.md](MODEL_CARD.md).
+
+## Demo app
+
+`space/` contains a Gradio app with two tabs, warehouse object detection and form understanding,
+ready to deploy as a Hugging Face Space. Example inputs are taken from the LOCO and FUNSD test
+splits.
+
+## API
+
+```bash
+uv run --no-sync uvicorn freightlens.api.app:app --host 127.0.0.1 --port 8000
+```
+
+| Method | Route | Input |
+|---|---|---|
+| GET | `/health` | None |
+| POST | `/documents/analyze` | Multipart `file`, PDF/PNG/JPG/TIF |
+| POST | `/videos/analyze?shipment_id=SHP-1` | Multipart `file`, MP4/AVI/MOV |
+| POST | `/reconcile` | JSON with `expected` and `observed` shipment states |
+
+Uploads are bounded by size, pixel count, PDF page count and video duration. `docker compose up
+--build` runs the service with OCR and vision extras; weights are mounted at runtime.
+
+## Pipeline checks on generated data
+
+The end-to-end pipeline (parser, tracking, reconciliation) is also tested on locally generated
+freight forms and controlled videos with exact ground truth. These numbers measure the logic on
+synthetic inputs, not real-world accuracy. See [REPORT.md](REPORT.md) for definitions.
 
 <!-- RESULTS_START -->
 | Component | Evaluation | Metric | Value |
@@ -93,169 +153,27 @@ checks. Full training is a separate command; smoke numbers are not full-training
 | reconciliation | controlled_state_interventions | f1 | 0.9697 |
 <!-- RESULTS_END -->
 
-### Integration smoke checks
-
-These runs only verify that the pretrained model paths load, train for one step/epoch and write
-metrics end to end. They are deliberately undertrained and are not accuracy results; full-training
-results (`make document`, `make vision`) are not reported here.
-
-| Component | Smoke run | Metric | Value |
-|---|---|---|---|
-| pallet_detection | 1-epoch YOLO fine-tune, public_synthetic_palleset_test | mAP50 | 0.0002 |
-| document_layoutlm_model_probe | 1 optimizer step, ground_truth_tokens_layout_entity_f1 | f1 | 0.0000 |
-| document_layoutlm | full training | f1 | not run |
-
-Real PaddleOCR evaluation lives in `artifacts/model-probe/metrics/document_baseline.json` and is
-also copied to `artifacts/metrics/document_paddleocr.json` by the model smoke command. Model
-probe JSON and run snapshots preserve real measurements even when an offline smoke rerun records
-its own model stages as `not_run`. Missing or skipped metrics are not reported as zero accuracy.
-
-## Error Analysis
-
-- Missing or corrupted OCR numbers produce unknown fields. The fixture test preserves examples
-  such as `DOC_000043` (missing weight) and `DOC_000044` (missing pallet count).
-- One-epoch pallet fine-tuning misses small pallets in a crowded Palleset test image. Low-threshold
-  AP and count error at the operational confidence threshold are reported separately.
-- Overlapping objects can merge in fixture detections, and occlusion can fragment identities.
-  Generated videos retain per-frame truth for quantitative analysis.
-- A confident OCR count error can cause a false anomaly (`CASE-000014`); low-confidence evidence
-  is instead routed to review. Saved JSON includes the upstream intervention and rule evidence.
-
-See [REPORT.md](REPORT.md) for evaluation definitions, examples and compatibility decisions.
-
-## Quick Start
-
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then run from this directory:
-
-```bash
-git clone https://github.com/Allan-dq/freightlens-ai.git
-cd freightlens-ai
-uv sync --extra dev
-make smoke
-make demo
-make lint
-```
-
-On Windows without Make:
-
-```powershell
-uv sync --extra dev
-.\scripts\tasks.ps1 smoke
-.\scripts\tasks.ps1 demo
-.\scripts\tasks.ps1 lint
-```
-
-The PowerShell runner also detects a local uv executable at `.tools/bin/uv.exe` when `uv` is
-absent from PATH. That optional tool cache is not committed.
-
-### Real pretrained model smoke
-
-This downloads model weights and a tiny public subset, then runs real OCR, one LayoutLMv3 optimizer
-step, one YOLO epoch and ByteTrack integration on CPU. It is intentionally separate from CI smoke.
-
-```bash
-uv sync --extra dev --extra ocr --extra layout --extra vision
-uv run --no-sync python scripts/model_smoke.py
-uv run --no-sync python scripts/download_funsd.py --config configs/smoke.yaml
-uv run --no-sync python scripts/evaluate_funsd.py --config configs/smoke.yaml
-```
-
-### Full experiments
-
-```bash
-uv sync --extra dev --extra ocr --extra layout --extra vision
-make data
-make document
-make vision
-make reconcile
-uv run --no-sync freightlens report --config configs/base.yaml
-```
-
-Full profiles use `data/full`, `models/full` and `artifacts/full`, so they do not overwrite smoke
-splits or checkpoints. The default document set is 1200/200/300, the detector runs up to 30 epochs,
-and LayoutLMv3 trains a frozen-backbone head with validation early stopping. CPU training is
-supported but can take substantial time. Use a new data root to change an established split.
-
-### API
-
-```bash
-uv run --no-sync uvicorn freightlens.api.app:app --host 127.0.0.1 --port 8000
-```
-
-The default API profile is `configs/base.yaml`, using full model paths. For the verified small
-local checkpoint, set `FREIGHTLENS_CONFIG=configs/local.yaml` before starting the server. On
-PowerShell: `$env:FREIGHTLENS_CONFIG='configs/local.yaml'`. Install model extras before analyzing
-real files. Offline fixture mode deliberately rejects arbitrary document uploads.
-
-| Method | Route | Input |
-|---|---|---|
-| GET | `/health` | None |
-| POST | `/documents/analyze` | Multipart `file`, PDF/PNG/JPG/TIF |
-| POST | `/videos/analyze?shipment_id=SHP-1` | Multipart `file`, MP4/AVI/MOV |
-| POST | `/reconcile` | JSON with `expected` and `observed` shipment states |
-
-Uploads are bounded by size, image pixels, PDF page count and video duration. The service is a
-local demonstration without production authentication. Unknown counts and vehicles remain null.
-
-```bash
-docker build -t freightlens-ai .
-docker compose up --build
-```
-
-The basic image provides health/reconciliation and offline pipeline dependencies. Compose enables
-OCR/vision inference extras and mounts data/models/artifacts. Weights are downloaded or mounted
-at runtime, not baked into the image. To build inference extras directly, pass
-`--build-arg "MODEL_EXTRAS=--extra ocr --extra vision"`.
-
-### CLI examples
-
-```bash
-freightlens version
-freightlens data generate-documents --config configs/smoke.yaml
-freightlens document analyze document.pdf --config configs/local.yaml
-freightlens document evaluate --backend rules --config configs/smoke.yaml
-freightlens vision detect pallet.png --config configs/local.yaml
-freightlens vision track pallets.mp4 --config configs/local.yaml
-freightlens reconcile --expected expected.json --observed observed.json
-freightlens demo --config configs/smoke.yaml
-```
-
-## Repository Structure
+## Repository layout
 
 ```text
-configs/              Validated smoke, demo, full and local API profiles
-src/freightlens/       Schemas, data, document_ai, vision, reconciliation, api, CLI
-scripts/              Phase entrypoints, model smoke and Windows task runner
-tests/                Unit tests and offline/optional model integration tests
-data/manifests/        Dataset revisions, splits, file hashes and download records
-data/{raw,synthetic,processed}/
-models/{document,vision}/
-artifacts/{metrics,figures,predictions,videos,demo,runs}/
+configs/            smoke, base, real-data and API profiles
+src/freightlens/    document_ai, vision, reconciliation, api, schemas, CLI
+scripts/            training, evaluation, benchmark and demo entry points
+space/              Gradio demo for Hugging Face Spaces
+tests/              unit and integration tests
+data/manifests/     dataset revisions, splits and checksums
 ```
-
-## Reproducibility
-
-Seeded generation, stable IDs, immutable split manifests, ground-truth JSON hashes and a checked-in
-`uv.lock` define the experiment inputs. Each measured stage records config, environment, seed,
-timestamp, Git revision when available and metrics in `artifacts/runs/`. Generated large outputs
-and weights are ignored by Git. Run `make report` to refresh the measured table from JSON.
-
-Standard CI installs only core/dev dependencies and uses offline fixtures. A manual workflow runs
-pretrained model integration. JSON serialization rejects nonfinite metrics. Confidence scores are
-heuristics, not calibrated probabilities.
 
 ## Limitations
 
-No proprietary records or real warehouse deployment were used. Freight forms, warehouse imagery
-and paired videos are generated or simulated, and unseen documents/cameras may behave differently.
-Rule scenario evaluation uses controlled interventions rather than naturally paired operations.
-The small verified training runs establish working integration, not deployment-level accuracy.
+- LOCO covers five facilities filmed from a walking camera; fixed overhead dock cameras, other
+  pallet types and night lighting are not represented.
+- FUNSD forms are not freight documents. The freight-form extractor is trained only on generated
+  layouts, so it is not yet validated on real bills of lading.
+- Tracking and reconciliation are evaluated on controlled videos and generated shipments, not on
+  paired real operations.
 
-Project source is AGPL-3.0-or-later. External weights and data keep their own licenses;
-**LayoutLMv3's CC BY-NC-SA 4.0 noncommercial restriction remains in force**.
+## License
 
-## Future Work
-
-Complete larger training runs, test unseen layouts and cameras, calibrate confidence and validate
-with appropriately licensed real warehouse observations. Plate recognition, learned anomaly
-scoring and a review dashboard are intentionally outside the implemented core.
+Source code is AGPL-3.0-or-later. Datasets and pretrained weights keep their own terms;
+LayoutLMv3 weights are CC BY-NC-SA 4.0 (non-commercial).

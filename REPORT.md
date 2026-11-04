@@ -136,3 +136,25 @@ conclusions. Performance may degrade on unseen warehouse cameras and documents. 
 training run proves integration only. Next steps are the full reproducible experiments, held-out
 template/camera validation, confidence calibration and a human review workflow. No business cost
 or productivity claims are made.
+
+## 10. Real-data training (LOCO and FUNSD)
+
+**Detector.** YOLO11n (COCO-pretrained) is fine-tuned on LOCO, real photos from logistics
+facilities released under CC0. LOCO is recorded as continuous walks, so neighbouring frames are
+near-duplicates; splitting by frame would leak them across splits. Splits are therefore whole
+recording sessions: sessions 2 and 3 for training (1,943 images), session 5 for checkpoint
+selection (877) and sessions 1 and 4, LOCO's official validation sessions, for the single final
+test (2,277). Training used 640 px inputs, batch 16, up to 50 epochs with early stopping on
+validation fitness (stopped after epoch 47, best epoch 37) on an Apple M1 Pro (MPS).
+
+**Form model.** LayoutLMv3-base is fine-tuned end to end on FUNSD for 1,000 steps (AdamW, learning
+rate 1e-5, 10 % linear warm-up, batch 2). Fifteen of the 149 training forms are held out to pick
+the checkpoint; the official 50 test forms are scored once with seqeval entity F1. Two box
+conventions are reported: word boxes, which an OCR engine produces on new documents, and segment
+boxes, which reuse annotated entity extents and match the protocol of the published result.
+
+**Reading the numbers.** The measured values are in the README table, rendered from
+`artifacts/full/metrics/` by `freightlens report-real`. Detection AP is averaged over confidence
+thresholds, while the pallet count error uses the operating threshold of 0.25, so the two can
+move independently. The main detector weakness is recall on small, distant pallets at 640 px;
+the next experiment is training at a higher input resolution.
