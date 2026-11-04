@@ -70,15 +70,31 @@ def calibrate_count_threshold(config: Config) -> dict:
     model = load_detector(trained_checkpoint(config))
     class_id = pallet_class(model)
     root = dataset_yaml(config).parent
-    val_conf, val_truth = _predict_split(model, root, "val", class_id, config)
-    choice = select_threshold(val_conf, val_truth)
+    has_validation = (
+        bool(config.vision.loco.val_subsets) or config.vision.detector.dataset != "loco"
+    )
+    if has_validation:
+        val_conf, val_truth = _predict_split(model, root, "val", class_id, config)
+        choice = select_threshold(val_conf, val_truth)
+    else:
+        # Final fixed-epoch model: no validation split is left, so keep the configured
+        # threshold, which was selected on validation for the development model.
+        val_truth = np.zeros(0, dtype=int)
+        choice = {
+            "threshold": config.vision.tracker.confidence_threshold,
+            "mae": None,
+            "bias": None,
+            "curve": [],
+        }
     test_conf, test_truth = _predict_split(model, root, "test", class_id, config)
     baseline = config.vision.tracker.confidence_threshold
     test_mae, test_bias = count_errors(test_conf, test_truth, choice["threshold"])
     base_mae, base_bias = count_errors(test_conf, test_truth, baseline)
     result = {
         "status": "measured",
-        "selected_on": "validation",
+        "selected_on": "validation"
+        if has_validation
+        else "configured (validation of the development model)",
         "threshold": choice["threshold"],
         "val_mae": choice["mae"],
         "val_bias": choice["bias"],
@@ -93,7 +109,8 @@ def calibrate_count_threshold(config: Config) -> dict:
         "val_curve": choice["curve"],
     }
     write_json(config.paths.artifacts / "metrics/pallet_count_calibration.json", result)
-    _plot(choice["curve"], result, config.paths.artifacts / "figures/count_threshold.png")
+    if choice["curve"]:
+        _plot(choice["curve"], result, config.paths.artifacts / "figures/count_threshold.png")
     record_run(config, "count_calibration", {k: v for k, v in result.items() if k != "val_curve"})
     return {k: v for k, v in result.items() if k != "val_curve"}
 
