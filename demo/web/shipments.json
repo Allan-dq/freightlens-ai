@@ -4,6 +4,9 @@
     "document_type": "bill_of_lading",
     "image": "examples/documents/SHP-000036.jpg",
     "photo": "examples/warehouse/loco_1.jpg",
+    "photo_source": "LOCO test s1_1564563502.8986418.jpg",
+    "photo_annotated_pallets": 4,
+    "paperwork_error": 0,
     "fields": [
       {
         "name": "shipment_id",
@@ -25,8 +28,8 @@
       },
       {
         "name": "pallet_count",
-        "printed": 6,
-        "extracted": 6,
+        "printed": 4,
+        "extracted": 4,
         "confidence": 0.9886682033538818
       },
       {
@@ -38,7 +41,7 @@
     ],
     "expected": {
       "shipment_id": "SHP-000036",
-      "expected_pallet_count": 6,
+      "expected_pallet_count": 4,
       "expected_vehicle_id": "TR-4074",
       "document_confidence": 0.9886682033538818
     }
@@ -48,6 +51,9 @@
     "document_type": "advance_shipping_notice",
     "image": "examples/documents/SHP-000025.jpg",
     "photo": "examples/warehouse/loco_2.jpg",
+    "photo_source": "LOCO test s1_1564564588038,75.jpg",
+    "photo_annotated_pallets": 13,
+    "paperwork_error": 3,
     "fields": [
       {
         "name": "shipment_id",
@@ -92,6 +98,9 @@
     "document_type": "invoice",
     "image": "examples/documents/SHP-000026.jpg",
     "photo": "examples/warehouse/loco_4.jpg",
+    "photo_source": "LOCO test s4_1579165461.8499296.jpg",
+    "photo_annotated_pallets": 24,
+    "paperwork_error": 0,
     "fields": [
       {
         "name": "shipment_id",
@@ -113,8 +122,8 @@
       },
       {
         "name": "pallet_count",
-        "printed": 12,
-        "extracted": 12,
+        "printed": 24,
+        "extracted": 24,
         "confidence": 0.9886682033538818
       },
       {
@@ -126,7 +135,7 @@
     ],
     "expected": {
       "shipment_id": "SHP-000026",
-      "expected_pallet_count": 12,
+      "expected_pallet_count": 24,
       "expected_vehicle_id": "TR-8640",
       "document_confidence": 0.9886682033538818
     }

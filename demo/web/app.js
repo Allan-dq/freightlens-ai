@@ -329,14 +329,29 @@ function updateVerdict() {
     );
   }
   lines.push(`Anomaly score ${result.anomaly_score.toFixed(2)} (weighted evidence, not a calibrated probability).`);
+  if (state.verify.custom) {
+    lines.push("Ground truth is unknown for your own photo.");
+  } else {
+    const truth = shipment.photo_annotated_pallets;
+    const paperworkRight = shipment.paperwork_error === 0;
+    const flagged = result.evidence.discrepancies.length > 0;
+    let check;
+    if (paperworkRight && !flagged) check = "the paperwork is right and the system agrees.";
+    else if (!paperworkRight && flagged) check = `the paperwork overstates the load by ${shipment.paperwork_error}, so the flag is real.`;
+    else if (paperworkRight && flagged) check = `the paperwork is right, so this flag is a false alarm caused by missed or extra detections.`;
+    else check = "the paperwork is wrong but the camera count happens to agree with it.";
+    lines.push(`<b>Ground truth:</b> the photo's LOCO annotation has ${truth} pallets; ${check}`);
+  }
   $("verdict-lines").innerHTML = lines.map((l) => `<li>${l}</li>`).join("");
+  $("annotated-count").textContent = state.verify.custom ? "–" : shipment.photo_annotated_pallets;
 }
 
-async function runVerify(image) {
+async function runVerify(image, custom = false) {
   $("verify-status").textContent = "Counting pallets…";
   const run = await infer(image);
   state.verify.image = image;
   state.verify.raw = run.raw;
+  state.verify.custom = custom;
   updateVerdict();
   $("verify-status").textContent = timing(run);
 }
@@ -361,7 +376,7 @@ async function setupVerify() {
     const file = event.target.files[0];
     if (!file || !state.verify.shipment) return;
     const url = URL.createObjectURL(file);
-    await runVerify(await loadImage(url));
+    await runVerify(await loadImage(url), true);
     URL.revokeObjectURL(url);
   });
 }

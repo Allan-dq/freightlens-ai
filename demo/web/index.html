@@ -127,6 +127,7 @@
         <div class="counter">
           <div><b id="observed-count">–</b><span>pallets counted</span></div>
           <div><b id="observed-conf">–</b><span>mean confidence</span></div>
+          <div><b id="annotated-count">–</b><span>annotated (ground truth)</span></div>
         </div>
         <label class="upload">Use your own photo<input id="verify-upload" type="file" accept="image/*"></label>
       </div>
@@ -138,10 +139,11 @@
       <input id="review-threshold" type="range" min="0.2" max="0.9" step="0.01" value="0.6" aria-label="Review threshold for detector confidence">
       <p class="note">Same rules as the Python service (<code>reconciliation/rules.py</code>, ported to
         JavaScript and checked against shared test cases). The 0.60 default was set on generated data;
-        the real-data detector averages about 0.4 on these photos, so the policy sends its counts to a
+        the real-data detector averages about 0.4 to 0.5 on these photos, so the policy sends its counts to a
         person instead of trusting them. Lower the threshold to see the automatic decision. Pallets are
         counted at <span data-metric="count_threshold" data-digits="2">0.25</span>, the threshold chosen
-        on validation data. Documents are synthetic and paired with real LOCO test photos for illustration.</p>
+        on validation data. Documents are synthetic: each one lists the photo's annotated pallet count,
+        except shipment 2, whose paperwork overstates the load by three pallets.</p>
     </div>
   </section>
 
