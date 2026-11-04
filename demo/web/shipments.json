@@ -1,0 +1,134 @@
+[
+  {
+    "shipment_id": "SHP-000036",
+    "document_type": "bill_of_lading",
+    "image": "examples/documents/SHP-000036.jpg",
+    "photo": "examples/warehouse/loco_1.jpg",
+    "fields": [
+      {
+        "name": "shipment_id",
+        "printed": "SHP-000036",
+        "extracted": "SHP-000036",
+        "confidence": 0.9999544024467468
+      },
+      {
+        "name": "carrier",
+        "printed": "Olsen Freight",
+        "extracted": "Olsen Freight",
+        "confidence": 0.995438277721405
+      },
+      {
+        "name": "vehicle_id",
+        "printed": "TR-4074",
+        "extracted": "TR-4074",
+        "confidence": 0.9999183416366577
+      },
+      {
+        "name": "pallet_count",
+        "printed": 6,
+        "extracted": 6,
+        "confidence": 0.9886682033538818
+      },
+      {
+        "name": "total_weight_lb",
+        "printed": 5218.0,
+        "extracted": 5218.0,
+        "confidence": 0.9861969947814941
+      }
+    ],
+    "expected": {
+      "shipment_id": "SHP-000036",
+      "expected_pallet_count": 6,
+      "expected_vehicle_id": "TR-4074",
+      "document_confidence": 0.9886682033538818
+    }
+  },
+  {
+    "shipment_id": "SHP-000025",
+    "document_type": "advance_shipping_notice",
+    "image": "examples/documents/SHP-000025.jpg",
+    "photo": "examples/warehouse/loco_2.jpg",
+    "fields": [
+      {
+        "name": "shipment_id",
+        "printed": "SHP-000025",
+        "extracted": "SHP-000025",
+        "confidence": 0.9999544024467468
+      },
+      {
+        "name": "carrier",
+        "printed": "Jones Freight",
+        "extracted": "Jones Freight",
+        "confidence": 0.9998922944068909
+      },
+      {
+        "name": "vehicle_id",
+        "printed": "TR-2225",
+        "extracted": "TR-2225",
+        "confidence": 0.9999183416366577
+      },
+      {
+        "name": "pallet_count",
+        "printed": 16,
+        "extracted": 16,
+        "confidence": 0.9886682033538818
+      },
+      {
+        "name": "total_weight_lb",
+        "printed": 6990.0,
+        "extracted": 6990.0,
+        "confidence": 0.9781015515327454
+      }
+    ],
+    "expected": {
+      "shipment_id": "SHP-000025",
+      "expected_pallet_count": 16,
+      "expected_vehicle_id": "TR-2225",
+      "document_confidence": 0.9886682033538818
+    }
+  },
+  {
+    "shipment_id": "SHP-000026",
+    "document_type": "invoice",
+    "image": "examples/documents/SHP-000026.jpg",
+    "photo": "examples/warehouse/loco_4.jpg",
+    "fields": [
+      {
+        "name": "shipment_id",
+        "printed": "SHP-000026",
+        "extracted": "SHP-000026",
+        "confidence": 0.999957263469696
+      },
+      {
+        "name": "carrier",
+        "printed": "Harmon Freight",
+        "extracted": "Harmon Freight",
+        "confidence": 0.9998922944068909
+      },
+      {
+        "name": "vehicle_id",
+        "printed": "TR-8640",
+        "extracted": "TR-8640",
+        "confidence": 0.9999183416366577
+      },
+      {
+        "name": "pallet_count",
+        "printed": 12,
+        "extracted": 12,
+        "confidence": 0.9886682033538818
+      },
+      {
+        "name": "total_weight_lb",
+        "printed": 2118.0,
+        "extracted": 2118.0,
+        "confidence": 0.9807907342910767
+      }
+    ],
+    "expected": {
+      "shipment_id": "SHP-000026",
+      "expected_pallet_count": 12,
+      "expected_vehicle_id": "TR-8640",
+      "document_confidence": 0.9886682033538818
+    }
+  }
+]

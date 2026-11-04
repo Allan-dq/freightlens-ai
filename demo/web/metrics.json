@@ -1,5 +1,8 @@
 {
   "pallet_AP50": 0.5224962994943158,
   "browser_pallet_AP50": 0.5214679142546953,
-  "funsd_f1": 0.797379276874545
+  "funsd_f1": 0.797379276874545,
+  "count_threshold": 0.25,
+  "review_threshold": 0.6,
+  "document_threshold": 0.7
 }

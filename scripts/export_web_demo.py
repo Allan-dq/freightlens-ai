@@ -121,8 +121,72 @@ def export_metrics(config) -> None:
         "pallet_AP50": read("pallet_detection.json")["pallet_AP50"],
         "browser_pallet_AP50": read("pallet_detection_onnx.json")["pallet_AP50"],
         "funsd_f1": read("document_layoutlm_funsd.json")["f1"],
+        "count_threshold": read("pallet_count_calibration.json")["threshold"],
+        "review_threshold": config.reconciliation.vision_threshold,
+        "document_threshold": config.reconciliation.document_threshold,
     }
     (WEB / "metrics.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+# Synthetic shipping documents paired with real LOCO test photos for the "verify a
+# shipment" tab. Indices select clean layouts of three different document types.
+SHIPMENTS = [
+    {"index": 36, "pallets": 6, "photo": "examples/warehouse/loco_1.jpg"},
+    {"index": 25, "pallets": 16, "photo": "examples/warehouse/loco_2.jpg"},
+    {"index": 26, "pallets": 12, "photo": "examples/warehouse/loco_4.jpg"},
+]
+
+
+def export_shipments(config) -> None:
+    """Generate documents, extract fields with PaddleOCR + the rule parser, save results."""
+    import tempfile
+
+    from freightlens.document_ai.generator import generate_one
+    from freightlens.io import read_json
+    from freightlens.pipeline import analyze_document
+    from freightlens.reconciliation.state import expected_from_document
+
+    output = WEB / "examples/documents"
+    output.mkdir(parents=True, exist_ok=True)
+    records = []
+    with tempfile.TemporaryDirectory() as scratch:
+        for spec in SHIPMENTS:
+            annotation = generate_one(
+                Path(scratch), spec["index"], config.seed, "demo", pallet_count=spec["pallets"]
+            )
+            printed = read_json(annotation)["fields"]
+            document, _ = analyze_document(annotation.with_suffix(".png"), config)
+            expected = expected_from_document(document)
+            image = Image.open(annotation.with_suffix(".png")).convert("RGB")
+            image.thumbnail((900, 1200))
+            name = f"{document.shipment_id}.jpg"
+            image.save(output / name, quality=85)
+            extracted = document.model_dump(mode="json")
+            records.append(
+                {
+                    "shipment_id": document.shipment_id,
+                    "document_type": document.document_type,
+                    "image": f"examples/documents/{name}",
+                    "photo": spec["photo"],
+                    "fields": [
+                        {
+                            "name": field,
+                            "printed": printed.get(field),
+                            "extracted": extracted.get(field),
+                            "confidence": document.field_confidences.get(field),
+                        }
+                        for field in [
+                            "shipment_id",
+                            "carrier",
+                            "vehicle_id",
+                            "pallet_count",
+                            "total_weight_lb",
+                        ]
+                    ],
+                    "expected": expected.model_dump(mode="json"),
+                }
+            )
+    (WEB / "shipments.json").write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
 
 
 def main() -> None:
@@ -133,6 +197,7 @@ def main() -> None:
     config = load_config(args.config)
     export_detector(config)
     export_forms(config, args.forms)
+    export_shipments(config)
     export_metrics(config)
 
 

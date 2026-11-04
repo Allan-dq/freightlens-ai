@@ -4,38 +4,44 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FreightLens AI</title>
-  <meta name="description" content="Warehouse object detection running in your browser, and scanned-form understanding, trained on real public data.">
+  <meta name="description" content="Check a shipment's paperwork against what a warehouse camera sees. The detector runs in your browser; models are trained on real public data.">
   <style>
     :root {
       --bg: #f7f7f5; --panel: #ffffff; --text: #1c1c1a; --muted: #6b6b66; --line: #e3e2dd;
       --accent: #16794c; --accent-soft: #e5f3ec; --question: #2563eb; --answer: #16a34a; --header: #ea580c;
+      --match: #16794c; --match-soft: #e5f3ec; --anomaly: #b42318; --anomaly-soft: #fdecea;
+      --review: #9a5b00; --review-soft: #fdf3dc;
       color-scheme: light;
     }
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #141413; --panel: #1d1d1b; --text: #ecebe6; --muted: #a09f99; --line: #33332f;
-        --accent: #4cc38a; --accent-soft: #1d3329; color-scheme: dark;
+        --accent: #4cc38a; --accent-soft: #1d3329; --match: #4cc38a; --match-soft: #1d3329;
+        --anomaly: #f47067; --anomaly-soft: #3a1d1b; --review: #e3b341; --review-soft: #352a12;
+        color-scheme: dark;
       }
     }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--text);
       font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-    main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 56px; }
+    main { max-width: 1160px; margin: 0 auto; padding: 32px 16px 56px; }
     header h1 { margin: 0; font-size: 28px; letter-spacing: -0.01em; }
-    header p { margin: 6px 0 0; color: var(--muted); max-width: 760px; }
+    header p { margin: 6px 0 0; color: var(--muted); max-width: 780px; }
     a { color: var(--accent); }
     .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 24px 0; }
     .metric { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
     .metric b { display: block; font-size: 24px; font-variant-numeric: tabular-nums; }
     .metric span { color: var(--muted); font-size: 13px; }
-    [role=tablist] { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+    [role=tablist] { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px; overflow-x: auto; }
     [role=tab] { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted);
-      padding: 10px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+      padding: 10px 14px; font: inherit; font-weight: 600; cursor: pointer; white-space: nowrap; }
     [role=tab][aria-selected=true] { color: var(--text); border-bottom-color: var(--accent); }
     .layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 20px; align-items: start; }
-    @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
+    .pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 20px; align-items: start; }
+    @media (max-width: 820px) { .layout, .pair { grid-template-columns: 1fr; } }
     .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
-    canvas, .form-view img { width: 100%; height: auto; display: block; border-radius: 8px; background: #2a2a28; }
+    canvas, .form-view img, .doc img { width: 100%; height: auto; display: block; border-radius: 8px; background: #2a2a28; }
+    .doc img { background: #fff; border: 1px solid var(--line); max-height: 420px; object-fit: contain; }
     .thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
     .thumb { padding: 0; border: 2px solid transparent; border-radius: 8px; overflow: hidden; cursor: pointer; background: none; }
     .thumb img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
@@ -45,18 +51,34 @@
     label.upload input { display: none; }
     .status { color: var(--muted); font-size: 13px; margin-top: 10px; min-height: 20px; }
     h2 { font-size: 15px; margin: 0 0 10px; }
+    h3 { font-size: 13px; margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
     table { width: 100%; border-collapse: collapse; }
-    td { padding: 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+    td { padding: 6px 4px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
     td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    td.ok { color: var(--match); } td.bad { color: var(--anomaly); }
     .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; }
     .muted { color: var(--muted); }
     input[type=range] { width: 100%; accent-color: var(--accent); }
-    .row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; }
+    .row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; gap: 12px; }
     .note { font-size: 13px; color: var(--muted); margin-top: 14px; }
+    .scenarios { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+    @media (max-width: 560px) { .scenarios { grid-template-columns: 1fr; } }
+    .scenario, .form-pick { border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 10px;
+      padding: 10px 12px; font: inherit; font-weight: 600; cursor: pointer; text-align: left; }
+    .scenario span { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
+    .scenario.active, .form-pick.active { border-color: var(--accent); background: var(--accent-soft); }
+    .form-pick { padding: 6px 12px; }
     .form-picker { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-    .form-pick { border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 8px;
-      padding: 6px 12px; font: inherit; cursor: pointer; }
-    .form-pick.active { border-color: var(--accent); background: var(--accent-soft); }
+    .verdict-card { margin-top: 20px; }
+    .verdict { display: inline-block; font-weight: 700; letter-spacing: 0.03em; padding: 4px 12px; border-radius: 999px; }
+    .verdict.match { color: var(--match); background: var(--match-soft); }
+    .verdict.anomaly { color: var(--anomaly); background: var(--anomaly-soft); }
+    .verdict.review_required { color: var(--review); background: var(--review-soft); }
+    .verdict-lines { margin: 12px 0 0; padding-left: 18px; }
+    .verdict-lines li { margin: 4px 0; }
+    .counter { display: flex; gap: 24px; margin-top: 12px; }
+    .counter b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+    .counter span { font-size: 13px; color: var(--muted); }
     .entities { max-height: 520px; overflow: auto; }
     .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; color: #fff; margin-right: 6px; }
     .tag.question { background: var(--question); } .tag.answer { background: var(--answer); } .tag.header { background: var(--header); }
@@ -68,9 +90,9 @@
 <main>
   <header>
     <h1>FreightLens AI</h1>
-    <p>Models trained on real, public data: a warehouse object detector that runs entirely in your
-      browser, and a scanned-form model. Code, training and evaluation:
-      <a href="https://github.com/Allan-dq/freightlens-ai">github.com/Allan-dq/freightlens-ai</a>.</p>
+    <p>Check what a shipment's paperwork says against what a warehouse camera sees. The pallet
+      detector runs entirely in your browser; both models are trained on real, public data. Code,
+      training and evaluation: <a href="https://github.com/Allan-dq/freightlens-ai">github.com/Allan-dq/freightlens-ai</a>.</p>
   </header>
 
   <section class="metrics" aria-label="Held-out test results">
@@ -80,11 +102,50 @@
   </section>
 
   <div role="tablist">
-    <button role="tab" aria-selected="true" aria-controls="tab-detect">Warehouse detection · live</button>
+    <button role="tab" aria-selected="true" aria-controls="tab-verify">Verify a shipment</button>
+    <button role="tab" aria-selected="false" aria-controls="tab-detect">Warehouse detection · live</button>
     <button role="tab" aria-selected="false" aria-controls="tab-forms">Form understanding · precomputed</button>
   </div>
 
-  <section id="tab-detect" role="tabpanel">
+  <section id="tab-verify" role="tabpanel">
+    <div class="scenarios" id="scenarios"></div>
+    <div class="pair">
+      <div class="card doc">
+        <h3>Document · <span id="doc-type"></span></h3>
+        <img id="doc-image" alt="">
+        <table style="margin-top:12px">
+          <tbody id="doc-fields"></tbody>
+        </table>
+        <p class="note">Synthetic shipping document. Fields were read by the project's PaddleOCR + rule
+          parser pipeline (precomputed); the last two columns are field confidence and agreement with
+          the printed value.</p>
+      </div>
+      <div class="card">
+        <h3>Camera · real warehouse photo</h3>
+        <canvas id="verify-canvas" width="1280" height="720" aria-label="Pallets detected in the photo"></canvas>
+        <div class="status" id="verify-status" aria-live="polite"></div>
+        <div class="counter">
+          <div><b id="observed-count">–</b><span>pallets counted</span></div>
+          <div><b id="observed-conf">–</b><span>mean confidence</span></div>
+        </div>
+        <label class="upload">Use your own photo<input id="verify-upload" type="file" accept="image/*"></label>
+      </div>
+    </div>
+    <div class="card verdict-card" aria-live="polite">
+      <div class="row" style="margin-top:0"><h2 style="margin:0">Reconciliation</h2><span class="verdict" id="verdict-status">–</span></div>
+      <ul class="verdict-lines" id="verdict-lines"></ul>
+      <div class="row"><span>Review threshold for detector confidence</span><b id="review-threshold-value">0.60</b></div>
+      <input id="review-threshold" type="range" min="0.2" max="0.9" step="0.01" value="0.6" aria-label="Review threshold for detector confidence">
+      <p class="note">Same rules as the Python service (<code>reconciliation/rules.py</code>, ported to
+        JavaScript and checked against shared test cases). The 0.60 default was set on generated data;
+        the real-data detector averages about 0.4 on these photos, so the policy sends its counts to a
+        person instead of trusting them. Lower the threshold to see the automatic decision. Pallets are
+        counted at <span data-metric="count_threshold" data-digits="2">0.25</span>, the threshold chosen
+        on validation data. Documents are synthetic and paired with real LOCO test photos for illustration.</p>
+    </div>
+  </section>
+
+  <section id="tab-detect" role="tabpanel" hidden>
     <div class="layout">
       <div class="card">
         <canvas id="result" width="1280" height="720" aria-label="Detections"></canvas>
@@ -130,10 +191,11 @@
 
   <footer>
     Detector: YOLO11n (Ultralytics, AGPL-3.0). Form model: LayoutLMv3-base (CC BY-NC-SA 4.0, non-commercial).
-    Datasets: LOCO (CC0), FUNSD (research use).
+    Datasets: LOCO (CC0), FUNSD (research use). Shipping documents are generated and fictional.
   </footer>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
+<script src="reconcile.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
