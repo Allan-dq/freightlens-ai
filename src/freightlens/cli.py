@@ -29,6 +29,7 @@ COMMANDS = {
     "demo": ("pipeline", "run_demo"),
     "run-end-to-end-demo": ("pipeline", "run_demo"),
     "report": ("pipeline", "generate_report"),
+    "report-real": ("real_results", "update_readme"),
 }
 
 
@@ -135,7 +136,7 @@ def main() -> None:
             child.set_defaults(action=action)
             if name in ["analyze", "detect", "track"]:
                 child.add_argument("path")
-    for name in ["demo", "report", "reconcile", "bootstrap"]:
+    for name in ["demo", "report", "report-real", "reconcile", "bootstrap"]:
         child = sub.add_parser(name)
         _options(child)
         child.set_defaults(action=name)
