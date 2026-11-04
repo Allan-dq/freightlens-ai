@@ -165,3 +165,44 @@ def test_count_threshold_is_selected_by_validation_mae():
     assert choice["threshold"] == 0.35
     assert choice["mae"] == 0.0
     assert [row["threshold"] for row in choice["curve"]] == [0.25, 0.35, 0.45, 0.65]
+
+
+def test_tile_grid_covers_the_frame_with_overlap():
+    from freightlens.vision.tiling import tile_grid
+
+    windows = tile_grid(1920, 1080, 960, 0.2)
+    assert windows[0] == (0, 0, 960, 960)
+    assert max(x1 for _, _, x1, _ in windows) == 1920
+    assert max(y1 for _, _, _, y1 in windows) == 1080
+    assert len(windows) == 6
+    assert tile_grid(500, 400, 640, 0.2) == [(0, 0, 500, 400)]
+
+
+def test_matcher_follows_ultralytics_greedy_rules():
+    import numpy as np
+
+    from freightlens.vision.tiling import match
+
+    truth = np.array([[0, 0, 10, 10], [20, 20, 30, 30]], float)
+    true_cls = np.array([0, 0])
+    preds = np.array([[0, 0, 10, 10], [0, 0, 10, 9], [20, 20, 30, 30]], float)
+    pred_cls = np.array([0, 0, 1])
+    correct = match(preds, pred_cls, truth, true_cls)
+    assert correct[0].all()  # exact box matches at every IoU threshold
+    assert not correct[1].any()  # duplicate of an already-matched truth
+    assert not correct[2].any()  # right place, wrong class
+
+
+def test_nms_merge_removes_duplicates_from_overlapping_tiles():
+    import numpy as np
+
+    pytest.importorskip("torchvision", reason="needs the vision extra")
+
+    from freightlens.vision.tiling import nms_merge
+
+    boxes = np.array([[0, 0, 10, 10], [0.5, 0, 10.5, 10], [0, 0, 10, 10]], float)
+    scores = np.array([0.9, 0.8, 0.7])
+    classes = np.array([0, 0, 1])
+    kept_boxes, kept_scores, kept_classes = nms_merge(boxes, scores, classes, 0.6)
+    assert sorted(kept_scores.tolist()) == [0.7, 0.9]
+    assert sorted(kept_classes.tolist()) == [0, 1]
